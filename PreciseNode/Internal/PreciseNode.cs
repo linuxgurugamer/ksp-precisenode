@@ -340,7 +340,7 @@ namespace RegexKSP {
 
 					if(nextEnc != null) {
 						name = nextEnc.referenceBody.name;
-						theName = nextEnc.referenceBody.theName;
+						theName = nextEnc.referenceBody.bodyName;
 						PeA = nextEnc.PeA.formatMeters();
 					} else {
 						curState.encounter = false;
