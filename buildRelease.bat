@@ -1,8 +1,4 @@
 
-set H=R:\KSP_1.3.0_dev
-echo %H%
-
-
 set RELEASEDIR=d:\Users\jbb\release
 set ZIP="c:\Program Files\7-zip\7z.exe"
 

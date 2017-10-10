@@ -1,6 +1,6 @@
 
 
-set H=R:\KSP_1.3.0_dev
+set H=R:\KSP_1.3.1_dev
 echo %H%
 
 copy /Y PreciseNode\bin\Debug\PreciseNode.dll GameData\PreciseNode\plugins
