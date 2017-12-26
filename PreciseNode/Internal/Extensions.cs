@@ -48,27 +48,7 @@ namespace RegexKSP {
 		/// <returns>The converted time.</returns>
 		/// <param name="UT">Kerbal Space Program Universal Time.</param>
 		internal static String convertUTtoHumanTime(this double UT) {
-			long secs;
-			long mins;
-			long hour;
-			long day;
-			long year;
-
-			if (GameSettings.KERBIN_TIME) {
-				secs = (long) Math.Floor(UT % 60);
-				mins = (long) Math.Floor((UT / 60) % 60);
-				hour = (long) Math.Floor((UT / (60 * 60)) % 6);
-				day = (long) Math.Floor((UT / (6 * 60 * 60)) % 426) + 1;  // Ensure we don't get a "Day 0" here.
-				year = (long) Math.Floor(UT / (426 * 6 * 60 * 60)) + 1; // Ensure we don't get a "Year 0" here.
-			} else {
-				secs = (long) Math.Floor(UT % 60);
-				mins = (long) Math.Floor((UT / 60) % 60);
-				hour = (long) Math.Floor((UT / (60 * 60)) % 24);
-				day = (long) Math.Floor((UT / (24 * 60 * 60)) % 365) + 1;  // Ensure we don't get a "Day 0" here.
-				year = (long) Math.Floor(UT / (365 * 24 * 60 * 60)) + 1; // Ensure we don't get a "Year 0" here.
-			}
-
-			return "Year " + year + " Day " + day + " " + hour + ":" + (mins < 10 ? "0" : "") + mins + ":" + (secs < 10 ? "0" : "") + secs;
+			return KSPUtil.dateTimeFormatter.PrintTimeStamp(UT, true, true);
 		}
 
 		/// <summary>
@@ -77,47 +57,7 @@ namespace RegexKSP {
 		/// <returns>The converted time.</returns>
 		/// <param name="UT">Kerbal Space Program Universal Time.</param>
 		internal static String convertUTtoHumanDuration(this double UT) {
-			string retval;
-			if (GameSettings.KERBIN_TIME) {
-				double temp = Math.Floor(Math.Abs(UT % 60));
-				retval = (long) temp + " s";
-				if (Math.Abs(UT / 60) > 1.0) {
-					temp = Math.Floor(Math.Abs((UT / 60) % 60));
-					retval = (long) temp + " m " + retval;
-				}
-				if (Math.Abs(UT / (60 * 60)) > 1.0) {
-					temp = Math.Floor(Math.Abs((UT / (60 * 60)) % 6));
-					retval = (long) temp + " h " + retval;
-				}
-				if (Math.Abs(UT / (6 * 60 * 60)) > 1.0) {
-					temp = Math.Floor(Math.Abs((UT / (6 * 60 * 60)) % 426));
-					retval = (long) temp + " d " + retval;
-				}
-				if (Math.Abs(UT / (426 * 6 * 60 * 60)) > 1.0) {
-					temp = Math.Floor(Math.Abs(UT / (426 * 6 * 60 * 60)));
-					retval = (long) temp + " y " + retval;
-				}
-			} else {
-				double temp = Math.Floor(Math.Abs(UT % 60));
-				retval = (long) temp + " s";
-				if (Math.Abs(UT / 60) > 1.0) {
-					temp = Math.Floor(Math.Abs((UT / 60) % 60));
-					retval = (long) temp + " m " + retval;
-				}
-				if (Math.Abs(UT / (60 * 60)) > 1.0) {
-					temp = Math.Floor(Math.Abs((UT / (60 * 60)) % 24));
-					retval = (long) temp + " h " + retval;
-				}
-				if (Math.Abs(UT / (24 * 60 * 60)) > 1.0) {
-					temp = Math.Floor(Math.Abs((UT / (24 * 60 * 60)) % 365));
-					retval = (long) temp + " d " + retval;
-				}
-				if (Math.Abs(UT / (365 * 24 * 60 * 60)) > 1.0) {
-					temp = Math.Floor(Math.Abs(UT / (365 * 24 * 60 * 60)));
-					retval = (long) temp + " y " + retval;
-				}
-			}
-			return retval;
+			return KSPUtil.dateTimeFormatter.PrintTimeStampCompact(UT, true, true);
 		}
 
 		/// <summary>
