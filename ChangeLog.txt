@@ -1,25 +1,12 @@
-Precise Node for Kerbal Space Program
+1.2.7
+	Use dateTimeFormatter for Kronometer compatibility, thanks @Aelfhe1m
+    Change date time formatting to use built in dateTimeFormatter for improved compatibility with non-standard calendars (e.g. Kronometer)
 
-Released under the BSD 2-clause License.
+1.2.6
+	Updated for 1.3.1
 
-Source available on GitHub: https://github.com/blizzy78/ksp-precisenode
-
-
-Left-click a "+/-" button for plus, right-click it for minus.
-
-
-Default Keyboard Controls:
-
-Prograde +/-: Keypad 8/Keypad 5
-Normal +/-: Keypad 9/Keypad 7
-Radial +/-: Keypad 6/Keypad 4
-Time +/-: Keypad 3/Keypad 1
-Increment +/-: Keypad 0/(alt/option) + <Increment +>
-Change Conics: Keypad Enter
-Hide Window: P
-Open Node: O
-
-
+1.2.5
+	Adoption by LGG, updated for 1.3.0
 
 1.2.4, 2016-10-15
 - Updated for KSP 1.2.0.

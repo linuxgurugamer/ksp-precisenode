@@ -1,14 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreciseNode", "PreciseNode\PreciseNode.csproj", "{2EC48913-1891-49A7-822B-F3CB809B772D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{8F120BAE-602E-4FF3-BA4E-C38DB722B461}"
 	ProjectSection(SolutionItems) = preProject
 		buildRelease.bat = buildRelease.bat
+		ChangeLog.txt = ChangeLog.txt
 		deploy.bat = deploy.bat
+		jenkins.txt = jenkins.txt
+		LICENSE.txt = LICENSE.txt
+		PreciseNode.version = PreciseNode.version
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
@@ -24,5 +29,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B2763CE6-D435-4B4D-AE8E-506939FAE442}
 	EndGlobalSection
 EndGlobal

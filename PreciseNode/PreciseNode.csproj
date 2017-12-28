@@ -51,8 +51,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="CHANGES.txt" />
-    <Content Include="etc\MiniAVC.dll" />
     <Content Include="Internal\AssemblyVersion.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
@@ -60,8 +58,6 @@
     <Content Include="Parts\CBAtexture.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="etc\PreciseNode.version" />
-    <None Include="LICENSE.txt" />
     <None Include="Parts\CBA.cfg" />
     <None Include="Parts\CBA.mu" />
   </ItemGroup>
@@ -87,10 +83,20 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>start /D $(ProjectDir)..  /WAIT deploy.bat
+    <PostBuildEvent>rem start /D $(ProjectDir)..  /WAIT deploy.bat
+
+rem if $(ConfigurationName) == Release (
+rem start /D  $(ProjectDir)..  /WAIT buildRelease.bat
+rem )
+
+
+
+start /D $(ProjectDir).. /WAIT deploy.bat  $(TargetDir) $(TargetFileName)
 
 if $(ConfigurationName) == Release (
-start /D  $(ProjectDir)..  /WAIT buildRelease.bat
+
+	start /D $(ProjectDir).. /WAIT buildRelease.bat $(TargetDir) $(TargetFileName)
+
 )
 </PostBuildEvent>
   </PropertyGroup>

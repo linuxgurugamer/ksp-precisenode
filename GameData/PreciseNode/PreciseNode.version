@@ -1,11 +1,11 @@
 {
 	"NAME": "Precise Node",
-	"URL": "https://raw.githubusercontent.com/linuxgurugamer/ksp-precisenode/master/PreciseNode/etc/PreciseNode.version",
+	"URL": "https://raw.githubusercontent.com/linuxgurugamer/ksp-precisenode/master/PreciseNode.version",
 	"DOWNLOAD": "http://forum.kerbalspaceprogram.com/index.php?/topic/44129-110-precise-node-122-precisely-edit-your-maneuver-nodes/",
 	"VERSION": {
 		"MAJOR": 1,
 		"MINOR": 2,
-		"PATCH": 6,
+		"PATCH": 7,
 		"BUILD": 0
 	},
 	"KSP_VERSION": {

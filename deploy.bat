@@ -1,12 +1,19 @@
 
+@echo off
+
+rem H is the destination game folder
+rem GAMEDIR is the name of the mod folder (usually the mod name)
+rem GAMEDATA is the name of the local GameData
+rem VERSIONFILE is the name of the version file, usually the same as GAMEDATA,
+rem    but not always
 
 set H=R:\KSP_1.3.1_dev
-echo %H%
+set GAMEDIR=PreciseNode
+set GAMEDATA="GameData\"
+set VERSIONFILE=%GAMEDIR%.version
 
-copy /Y PreciseNode\bin\Debug\PreciseNode.dll GameData\PreciseNode\plugins
-copy /Y PreciseNode\etc\PreciseNode.version GameData\PreciseNode\plugins
+copy /Y "%1%2" "%GAMEDATA%\%GAMEDIR%\Plugins"
+copy /Y %VERSIONFILE% %GAMEDATA%\%GAMEDIR%
 
-cd GameData
-mkdir "%H%\GameData\PreciseNode"
-xcopy /y /s PreciseNode "%H%\GameData\PreciseNode"
+xcopy /y /s /I %GAMEDATA%\%GAMEDIR% "%H%\GameData\%GAMEDIR%"
 
