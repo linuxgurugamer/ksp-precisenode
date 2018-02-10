@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		buildRelease.bat = buildRelease.bat
 		ChangeLog.txt = ChangeLog.txt
 		deploy.bat = deploy.bat
+		GameData\PreciseNode\Localization\en-us.cfg = GameData\PreciseNode\Localization\en-us.cfg
 		jenkins.txt = jenkins.txt
 		LICENSE.txt = LICENSE.txt
 		PreciseNode.version = PreciseNode.version

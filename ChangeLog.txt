@@ -1,4 +1,8 @@
-1.2.7
+1.2.8
+	Localization
+	Click-through fixed, now requires the ClickThroughBlocker mod as a dependency
+
+1.2.7	
 	Use dateTimeFormatter for Kronometer compatibility, thanks @Aelfhe1m
     Change date time formatting to use built in dateTimeFormatter for improved compatibility with non-standard calendars (e.g. Kronometer)
 

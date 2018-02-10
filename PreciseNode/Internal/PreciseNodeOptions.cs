@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+
 /******************************************************************************
  * Copyright (c) 2013-2014, Justin Bengtson
  * All rights reserved.
@@ -33,8 +34,9 @@ using UnityEngine;
 
 namespace RegexKSP {
 	internal class PreciseNodeOptions {
-		internal Rect mainWindowPos = new Rect(Screen.width / 10, 20, 0, 0);
-		internal Rect optionsWindowPos = new Rect(Screen.width / 3, 20, 0, 0);
+		//internal Rect mainWindowPos = new Rect(Screen.width / 10, 20, 0, 0);
+        internal Rect mainWindowPos = new Rect(Screen.width / 10, 20, 0, 0);
+        internal Rect optionsWindowPos = new Rect(Screen.width / 3, 20, 0, 0);
 		internal Rect keymapperWindowPos = new Rect(Screen.width / 5, 20, 0, 0);
 		internal Rect clockWindowPos = new Rect(Screen.width / 3, Screen.height / 2, 0, 0);
 		internal Rect conicsWindowPos = new Rect(Screen.width / 5, Screen.height / 2, 0, 0);
