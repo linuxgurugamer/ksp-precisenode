@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using KSP.IO;
+using KSP.Localization;
+using ClickThroughFix;
 
 /******************************************************************************
  * Copyright (c) 2013-2014, Justin Bengtson
@@ -186,20 +188,24 @@ namespace RegexKSP {
 		/// </summary>
 		private void drawGUI() {
 			GUI.skin = null;
-			options.mainWindowPos = GUILayout.Window(mainWindowId, options.mainWindowPos, (id) => drawMainWindow(),
-				"Precise Node", GUILayout.ExpandHeight(true));
-			if(showOptions) {
-				options.optionsWindowPos = GUILayout.Window(optionsWindowId, options.optionsWindowPos, (id) => drawOptionsWindow(),
-					"Precise Node Options", GUILayout.ExpandHeight(true));
-			}
+			options.mainWindowPos = ClickThruBlocker.GUILayoutWindow(mainWindowId, options.mainWindowPos, (id) => drawMainWindow(),
+				Localizer.Format("#PN_PreciseNode"), GUILayout.ExpandHeight(true));
+
+            if (showOptions) {
+				options.optionsWindowPos = ClickThruBlocker.GUILayoutWindow(optionsWindowId, options.optionsWindowPos, (id) => drawOptionsWindow(),
+					Localizer.Format("#PN_PreciseNodeOptions"), GUILayout.ExpandHeight(true));
+
+            }
 			if(showKeymapper) {
-				options.keymapperWindowPos = GUILayout.Window(keymapperWindowId, options.keymapperWindowPos, (id) => drawKeymapperWindow(),
-					"Precise Node Keys", GUILayout.ExpandHeight(true));
-			}
+				options.keymapperWindowPos = ClickThruBlocker.GUILayoutWindow(keymapperWindowId, options.keymapperWindowPos, (id) => drawKeymapperWindow(),
+					Localizer.Format("#PN_PreciseNodeKeys"), GUILayout.ExpandHeight(true));
+
+            }
 			if(options.showTrip) {
-				options.tripWindowPos = GUILayout.Window(tripWindowId, options.tripWindowPos, (id) => drawTripWindow(),
-					"Trip Info", GUILayout.ExpandHeight(true));
-			}
+				options.tripWindowPos = ClickThruBlocker.GUILayoutWindow(tripWindowId, options.tripWindowPos, (id) => drawTripWindow(),
+					Localizer.Format("#PN_TripInfo"), GUILayout.ExpandHeight(true));
+
+            }
 		}
 
 		/// <summary>
@@ -207,18 +213,20 @@ namespace RegexKSP {
 		/// </summary>
 		private void drawClockGUI() {
 			GUI.skin = null;
-			options.clockWindowPos = GUILayout.Window(clockWindowId, options.clockWindowPos, (id) => drawClockWindow(),
-				"Clock", GUILayout.ExpandHeight(true));
-		}
+			options.clockWindowPos = ClickThruBlocker.GUILayoutWindow(clockWindowId, options.clockWindowPos, (id) => drawClockWindow(),
+				Localizer.Format("#PN_Clock"), GUILayout.ExpandHeight(true));
+
+        }
 
 		/// <summary>
 		/// Draw Conics GUI
 		/// </summary>
 		private void drawConicsGUI() {
 			GUI.skin = null;
-			options.conicsWindowPos = GUILayout.Window(conicsWindowId, options.conicsWindowPos, (id) => drawConicsWindow(),
-				"Conics Controls", GUILayout.ExpandHeight(true));
-		}
+			options.conicsWindowPos = ClickThruBlocker.GUILayoutWindow(conicsWindowId, options.conicsWindowPos, (id) => drawConicsWindow(),
+				Localizer.Format("#PN_ConicsControls"), GUILayout.ExpandHeight(true));
+
+        }
 
 		/// <summary>
 		/// Draws the Node Editor window.
@@ -231,15 +239,17 @@ namespace RegexKSP {
 
 			// Options button
 			if(showOptions) { GUI.backgroundColor = Color.green; }
-			if(GUI.Button(new Rect(options.mainWindowPos.width - 48, 2, 22, 18), "O")) {
-				showOptions = !showOptions;
+			if(GUI.Button(new Rect(options.mainWindowPos.width - 48, 2, 22, 18), Localizer.Format("#PN_O"))) {
+
+                showOptions = !showOptions;
 			}
 			GUI.backgroundColor = defaultColor;
 
 			// Keymapping button
 			if(showKeymapper) { GUI.backgroundColor = Color.green; }
-			if(GUI.Button(new Rect(options.mainWindowPos.width - 24, 2, 22, 18), "K")) {
-				showKeymapper = !showKeymapper;
+			if(GUI.Button(new Rect(options.mainWindowPos.width - 24, 2, 22, 18), Localizer.Format("#PN_K"))) {
+
+                showKeymapper = !showKeymapper;
 			}
 			GUI.backgroundColor = defaultColor;
 
@@ -249,11 +259,11 @@ namespace RegexKSP {
 			}
 
 			// Human-readable time
-			GUIParts.drawDoubleLabel("Time:", 100, curState.currentUT().convertUTtoHumanTime(), 150);
+			GUIParts.drawDoubleLabel(Localizer.Format("#PN_Time"), 100, curState.currentUT().convertUTtoHumanTime(), 150);
 
-			// Increment buttons
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Increment:", GUILayout.Width(100));
+            // Increment buttons
+            GUILayout.BeginHorizontal();
+			GUILayout.Label(Localizer.Format("#PN_Increment") + ":", GUILayout.Width(100));
 			GUIParts.drawButton("0.01", (options.increment == 0.01?Color.yellow:defaultColor), () => { options.increment = 0.01; });
 			GUIParts.drawButton("0.1", (options.increment == 0.1?Color.yellow:defaultColor), () => { options.increment = 0.1; });
 			GUIParts.drawButton("1", (options.increment == 1?Color.yellow:defaultColor), () => { options.increment = 1; });
@@ -270,21 +280,24 @@ namespace RegexKSP {
 					drawRadialControls(contentColor);
 				GUILayout.EndVertical();
 				GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
-					GUIParts.drawButton("MS", defaultColor, () => {
-						curState.memorize();
+					GUIParts.drawButton(Localizer.Format("#PN_MS"), defaultColor, () => {
+
+                        curState.memorize();
 					}, GUILayout.ExpandHeight(true));
 					GUI.enabled = curState.HasMemorized;
-					GUIParts.drawButton("MR", defaultColor, () => {
-						curState.recallMemory();
+					GUIParts.drawButton(Localizer.Format("#PN_MR"), defaultColor, () => {
+
+                        curState.recallMemory();
 					}, GUILayout.ExpandHeight(true));
 					GUI.enabled = true;
 				GUILayout.EndVertical();
 			GUILayout.EndHorizontal();
 
 			// total delta-V display
-			GUIParts.drawDoubleLabel("Total Δv:", 100, curState.currentMagnitude().ToString("0.##") + " m/s", 130);
+			GUIParts.drawDoubleLabel(Localizer.Format("#PN_TotalDV") + ":", 100, curState.currentMagnitude().ToString("0.##") + " " + Localizer.Format("#PN_mPers"), 130);
 
-			drawEAngle();
+
+            drawEAngle();
 			drawEncounter(defaultColor);
 
 			// Conics mode controls
@@ -294,9 +307,11 @@ namespace RegexKSP {
 			
 			// trip info button and vessel focus buttons
 			GUILayout.BeginHorizontal();
-			GUIParts.drawButton("Trip Info", (options.showTrip?Color.yellow:defaultColor), () => { options.showTrip = !options.showTrip; });
-			GUIParts.drawButton("Focus on Vessel", defaultColor, () => {
-				MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.vessel != null) && o.vessel.Equals(FlightGlobals.ActiveVessel));
+			GUIParts.drawButton(Localizer.Format("#PN_TripInfo"), (options.showTrip?Color.yellow:defaultColor), () => { options.showTrip = !options.showTrip; });
+
+            GUIParts.drawButton(Localizer.Format("#PN_FocusOnVessel"), defaultColor, () => {
+
+                MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.vessel != null) && o.vessel.Equals(FlightGlobals.ActiveVessel));
 				MapView.MapCamera.SetTarget(mapObject);
 			});
 			GUILayout.EndHorizontal();
@@ -308,23 +323,27 @@ namespace RegexKSP {
 		private void drawEAngle() {
 			// Ejection angle
 			if(options.showEAngle) {
-				String eangle = "n/a";
-				if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
+				String eangle = Localizer.Format("#PN_na");
+
+                if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
 					double angle = FlightGlobals.ActiveVessel.orbit.getEjectionAngle(curState.node);
 					if (!double.IsNaN(angle)) {
-						eangle = Math.Abs(angle).ToString("0.##") + "° from " + ((angle >= 0) ? "prograde" : "retrograde");
-					}
-				}
-				GUIParts.drawDoubleLabel("Ejection angle:", 100, eangle, 150);
+						eangle = Math.Abs(angle).ToString("0.##") + "° " + Localizer.Format("#PN_From") + " " + ((angle >= 0) ? Localizer.Format("#PN_prograde") : Localizer.Format("#PN_retrograde"));
 
-				String einclination = "n/a";
-				if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
+                    }
+				}
+				GUIParts.drawDoubleLabel(Localizer.Format("#PN_EjectionAngle") + ":", 100, eangle, 150);
+
+				String einclination = Localizer.Format("#PN_na");
+
+                if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
 					double angle = FlightGlobals.ActiveVessel.orbit.getEjectionInclination(curState.node);
 					if (!double.IsNaN(angle)) {
-						einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? "north" : "south");
-					}
+						einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? Localizer.Format("#PN_north") : Localizer.Format("#PN_south"));
+
+                    }
 				}
-				GUIParts.drawDoubleLabel("Eject. inclination:", 100, einclination, 150);
+				GUIParts.drawDoubleLabel(Localizer.Format("#PN_EjectionAngle") + ":", 100, einclination, 150);
 			}
 		}
 
@@ -334,11 +353,12 @@ namespace RegexKSP {
 				// Find the next encounter, if any, in our flight plan.
 				if(showEncounter) {
 					Orbit nextEnc = curState.node.findNextEncounter();
-					string name = "n/a";
-					string theName = "n/a";
-					string PeA = "n/a";
+					string name = Localizer.Format("#PN_na");
 
-					if(nextEnc != null) {
+                    string theName = Localizer.Format("#PN_na");
+                    string PeA = Localizer.Format("#PN_na");
+
+                    if (nextEnc != null) {
 						name = nextEnc.referenceBody.name;
 						theName = nextEnc.referenceBody.bodyName;
 						PeA = nextEnc.PeA.formatMeters();
@@ -346,10 +366,10 @@ namespace RegexKSP {
 						curState.encounter = false;
 					}
 					// Next encounter periapsis
-					GUIParts.drawDoubleLabel("(" + name + ") Pe:", 100, PeA, 130);
+					GUIParts.drawDoubleLabel("(" + name + ") " + Localizer.Format("#PN_Pe") + ":", 100, PeA, 130);
 					GUILayout.BeginHorizontal();
 					GUILayout.Label("", GUILayout.Width(100));
-					GUIParts.drawButton("Focus on " + theName, defaultColor, () => {
+					GUIParts.drawButton(Localizer.Format("#PN_FocusOn") + " " + theName, defaultColor, () => {
 						MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.celestialBody != null) && (o.celestialBody.name == name));
 						MapView.MapCamera.SetTarget(mapObject);
 					});
@@ -357,9 +377,9 @@ namespace RegexKSP {
 				} else {
 					if(curState.node.solver.flightPlan.Count > 1) {
 						// output the apoapsis and periapsis of our projected orbit.
-						GUIParts.drawDoubleLabel("Apoapsis:", 100, curState.node.nextPatch.ApA.formatMeters(), 100);
-						GUIParts.drawDoubleLabel("Periapsis:", 100, curState.node.nextPatch.PeA.formatMeters(), 130);
-						GUIParts.drawDoubleLabel("Inclination:", 100, Math.Abs(curState.node.nextPatch.inclination).ToString("0.##") + "°", 150);
+						GUIParts.drawDoubleLabel(Localizer.Format("#PN_Apoapsis") + ":", 100, curState.node.nextPatch.ApA.formatMeters(), 100);
+						GUIParts.drawDoubleLabel(Localizer.Format("#PN_Periapsis") + ":", 100, curState.node.nextPatch.PeA.formatMeters(), 130);
+						GUIParts.drawDoubleLabel(Localizer.Format("#PN_Inclination") + ":", 100, Math.Abs(curState.node.nextPatch.inclination).ToString("0.##") + "°", 150);
 					}
 				}
 			}
@@ -368,8 +388,9 @@ namespace RegexKSP {
 		private void drawTimeControls(Color contentColor) {
 			// Universal time controls
 			GUILayout.BeginHorizontal();
-			GUILayout.Label((options.largeUTIncrement?"UT: (x10 inc)":"UT:"), GUILayout.Width(100));
-			if(!curState.timeParsed) {
+            // possible problem with localization in following line
+            GUILayout.Label((options.largeUTIncrement ? Localizer.Format("#PN_UT") + ": (x10 " + Localizer.Format("#PN_Inc") + ")" : Localizer.Format("#PN_UT") + ":"), GUILayout.Width(100));
+            if (!curState.timeParsed) {
 				GUI.contentColor = Color.red;
 			}
 			string check = GUILayout.TextField(curState.timeText, GUILayout.Width(100));
@@ -388,10 +409,12 @@ namespace RegexKSP {
 				Orbit targ = NodeTools.getTargetOrbit();
 
 				GUILayout.BeginHorizontal();
-				GUIParts.drawButton("Peri", Color.yellow, () => { curState.setPeriapsis(); });
-				GUI.enabled = curState.node.hasDN(targ);
-				GUIParts.drawButton("DN", Color.magenta, () => {
-					if(targ != null) {
+				GUIParts.drawButton(Localizer.Format("#PN_Peri"), Color.yellow, () => { curState.setPeriapsis(); });
+
+                GUI.enabled = curState.node.hasDN(targ);
+				GUIParts.drawButton(Localizer.Format("#PN_DN"), Color.magenta, () => {
+
+                    if (targ != null) {
 						curState.setUT(curState.node.patch.getTargetDNUT(targ));
 					} else {
 						curState.setUT(curState.node.patch.getEquatorialDNUT());
@@ -399,26 +422,32 @@ namespace RegexKSP {
 				});
 				if (options.largeUTIncrement) {
 					GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT - curState.node.patch.period);
-					GUIParts.drawButton("-Orb", Color.red, () => { curState.addUT(-curState.node.patch.period); });
-					GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT + curState.node.patch.period);
-					GUIParts.drawButton("+Orb", Color.green, () => { curState.addUT(curState.node.patch.period); });
-				} else {
+					GUIParts.drawButton(Localizer.Format("#PN_MinusOrb"), Color.red, () => { curState.addUT(-curState.node.patch.period); });
+
+                    GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT + curState.node.patch.period);
+					GUIParts.drawButton(Localizer.Format("#PN_PlusOrb"), Color.green, () => { curState.addUT(curState.node.patch.period); });
+
+                } else {
 					GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT - 1000);
-					GUIParts.drawButton("-1K", Color.red, () => { curState.addUT(-1000); });
-					GUI.enabled = true;
-					GUIParts.drawButton("+1K", Color.green, () => { curState.addUT(1000); });
-				}
+					GUIParts.drawButton(Localizer.Format("#PN_Minus1K"), Color.red, () => { curState.addUT(-1000); });
+
+                    GUI.enabled = true;
+					GUIParts.drawButton(Localizer.Format("#PN_Plus1K"), Color.green, () => { curState.addUT(1000); });
+
+                }
 				GUI.enabled = curState.node.hasAN(targ);
-				GUIParts.drawButton("AN", Color.cyan, () => {
-					if(targ != null) {
+				GUIParts.drawButton(Localizer.Format("#PN_AN"), Color.cyan, () => {
+
+                    if (targ != null) {
 						curState.setUT(curState.node.patch.getTargetANUT(targ));
 					} else {
 						curState.setUT(curState.node.patch.getEquatorialANUT());
 					}
 				});
 				GUI.enabled = curState.node.patch.hasAP();
-				GUIParts.drawButton("Apo", Color.blue, () => { curState.setApoapsis(); });
-				GUILayout.EndHorizontal();
+				GUIParts.drawButton(Localizer.Format("#PN_Apo"), Color.blue, () => { curState.setApoapsis(); });
+
+                GUILayout.EndHorizontal();
 			}
 
 			GUI.enabled = true;
@@ -430,7 +459,7 @@ namespace RegexKSP {
 			// Prograde controls
 			GUILayout.BeginHorizontal();
 			GUI.contentColor = PROGRADE_COLOR;
-			GUILayout.Label("Prograde:", GUILayout.Width(100));
+			GUILayout.Label(Localizer.Format("#PN_Prograde") + ":", GUILayout.Width(100));
 			if (!curState.progradeParsed) {
 				GUI.contentColor = Color.red;
 				GUI.backgroundColor = Color.red;
@@ -455,7 +484,7 @@ namespace RegexKSP {
 			// Normal controls
 			GUILayout.BeginHorizontal();
 			GUI.contentColor = NORMAL_COLOR;
-			GUILayout.Label("Normal:", GUILayout.Width(100));
+			GUILayout.Label(Localizer.Format("#PN_Normal") + ":", GUILayout.Width(100));
 			if (!curState.normalParsed) {
 				GUI.contentColor = Color.red;
 				GUI.backgroundColor = Color.red;
@@ -481,7 +510,7 @@ namespace RegexKSP {
 			// radial controls
 			GUILayout.BeginHorizontal();
 			GUI.contentColor = RADIAL_COLOR;
-			GUILayout.Label("Radial:", GUILayout.Width(100));
+			GUILayout.Label(Localizer.Format("#PN_Radial") + ":", GUILayout.Width(100));
 			if (!curState.radialParsed) {
 				GUI.contentColor = Color.red;
 				GUI.backgroundColor = Color.red;
@@ -519,11 +548,12 @@ namespace RegexKSP {
 				curState.clearMemory();
 			}
 			GUI.enabled = true;
-			if (GUILayout.Button("Node " + (idx + 1))) {
+			if (GUILayout.Button(Localizer.Format("#PN_Node") + " " + (idx + 1))) {
 				MapView.MapCamera.SetTarget(curState.node.scaledSpaceTarget);
 			}
-			GUIParts.drawButton("Del", Color.red, () => {
-				curState.node.RemoveSelf();
+			GUIParts.drawButton(Localizer.Format("#PN_Del"), Color.red, () => {
+
+                curState.node.RemoveSelf();
 				//solver.RemoveManeuverNode(curState.node);
 				curState.clearMemory();
 			});
@@ -551,8 +581,8 @@ namespace RegexKSP {
 
 			GUILayout.BeginVertical();
 
-			GUIParts.drawDoubleLabel("Time:", 35, timeHuman, 150);
-			GUIParts.drawDoubleLabel("UT:", 35, Math.Floor(timeNow).ToString("F0"), 150);
+			GUIParts.drawDoubleLabel(Localizer.Format("#PN_Time") + ":", 35, timeHuman, 150);
+			GUIParts.drawDoubleLabel(Localizer.Format("#PN_UT") + ":", 35, Math.Floor(timeNow).ToString("F0"), 150);
 
 			if(showTimeNext) {
 				double next = 0.0;
@@ -563,11 +593,13 @@ namespace RegexKSP {
 					next = timeNow - NodeTools.getSolver().maneuverNodes[0].UT;
 				}
 				if(next < 0) {
-					labelText = "T-" + next.convertUTtoHumanDuration();
-				} else {
-					labelText = "T+" + next.convertUTtoHumanDuration();
-				}
-				GUIParts.drawDoubleLabel("Next:", 35, labelText, 150);
+					labelText = Localizer.Format("#PN_TMinus") + next.convertUTtoHumanDuration();
+
+                } else {
+					labelText = Localizer.Format("#PN_TPlus")  + next.convertUTtoHumanDuration();
+
+                }
+				GUIParts.drawDoubleLabel(Localizer.Format("#PN_Next") + ":", 35, labelText, 150);
 			}
 
 			GUILayout.EndVertical();
@@ -600,46 +632,55 @@ namespace RegexKSP {
 			// use a temp variable so we can check whether the main window needs resizing.
 			bool temp;
 
-			temp = GUILayout.Toggle(options.showConics, "Show conics controls");
-			if (temp != options.showConics) {
+			temp = GUILayout.Toggle(options.showConics, Localizer.Format("#PN_ShowConicsControls"));
+
+            if (temp != options.showConics) {
 				options.showConics = temp;
 				curState.resizeMainWindow = true;
 			}
 
-			options.showConicsAlways = GUILayout.Toggle(options.showConicsAlways, "Show conics window");
-			options.showClock = GUILayout.Toggle(options.showClock, "Show clock window");
-			temp = GUILayout.Toggle(options.showManeuverPager, "Show maneuver pager");
-			if(temp != options.showManeuverPager) {
+			options.showConicsAlways = GUILayout.Toggle(options.showConicsAlways, Localizer.Format("#PN_ShowConicsWindow"));
+
+            options.showClock = GUILayout.Toggle(options.showClock,Localizer.Format("#PN_ShowClockWindow"));
+
+            temp = GUILayout.Toggle(options.showManeuverPager, Localizer.Format("#PN_ShowManeuverPager"));
+
+            if (temp != options.showManeuverPager) {
 				options.showManeuverPager = temp;
 				curState.resizeMainWindow = true;
 			}
-			temp = GUILayout.Toggle(options.showUTControls, "Show additional UT controls");
-			if(temp != options.showUTControls) {
+			temp = GUILayout.Toggle(options.showUTControls, Localizer.Format("#PN_ShowAdditionalUTControls"));
+
+            if (temp != options.showUTControls) {
 				options.showUTControls = temp;
 				curState.resizeMainWindow = true;
 			}
-			options.largeUTIncrement = GUILayout.Toggle(options.largeUTIncrement, "Use x10 UT increment");
-			temp = GUILayout.Toggle(options.showEAngle, "Show ejection angle");
-			if(temp != options.showEAngle) {
+			options.largeUTIncrement = GUILayout.Toggle(options.largeUTIncrement, Localizer.Format("#PN_UseX10UTIncrement"));
+
+            temp = GUILayout.Toggle(options.showEAngle, Localizer.Format("#PN_ShowEjectionAngle"));
+
+            if (temp != options.showEAngle) {
 				options.showEAngle = temp;
 				curState.resizeMainWindow = true;
 			}
-			temp = GUILayout.Toggle(options.showOrbitInfo, "Show orbit information");
-			if(temp != options.showOrbitInfo) {
+			temp = GUILayout.Toggle(options.showOrbitInfo, Localizer.Format("#PN_ShowOrbitInformation"));
+
+            if (temp != options.showOrbitInfo) {
 				options.showOrbitInfo = temp;
 				curState.resizeMainWindow = true;
 			}
-			temp = GUILayout.Toggle(options.intuitiveManeuverGizmos, "Use intuitive maneuver node handle behavior");
-			if (temp != options.intuitiveManeuverGizmos) {
+			temp = GUILayout.Toggle(options.intuitiveManeuverGizmos, Localizer.Format("#PN_UseIntuitiveNode"));
+
+            if (temp != options.intuitiveManeuverGizmos) {
 				options.intuitiveManeuverGizmos = temp;
 				curState.resizeMainWindow = true;
 			}
 #if NODE_CLEANUP
-			options.removeUsedNodes = GUILayout.Toggle(options.removeUsedNodes, "Remove used nodes");
+			options.removeUsedNodes = GUILayout.Toggle(options.removeUsedNodes, Localizer.Format("#PN_RemoveUsedNodes"));
             //TODO: Add threshold controls for removing used nodes
 #endif
 
-			GUILayout.EndVertical();
+            GUILayout.EndVertical();
 			GUI.DragWindow();
 		}
 
@@ -657,40 +698,47 @@ namespace RegexKSP {
 			GUILayout.BeginVertical();
 
 			// Set window control
-			drawKeyControls("Hide/show window", Key.HIDEWINDOW, options.hideWindow);
+			drawKeyControls(Localizer.Format("#PN_HideShowWindow"), Key.HIDEWINDOW, options.hideWindow);
 
-			// Set add node widget button
-			drawKeyControls("Open node gizmo", Key.ADDWIDGET, options.addWidget);
+            // Set add node widget button
+            drawKeyControls(Localizer.Format("#PN_OpenNodeGizmo"), Key.ADDWIDGET, options.addWidget);
 
-			// Set prograde controls
-			drawKeyControls("Increment prograde", Key.PROGINC, options.progInc);
-			drawKeyControls("Decrement prograde", Key.PROGDEC, options.progDec);
+            // Set prograde controls
+            drawKeyControls(Localizer.Format("#PN_IncrementPrograde"), Key.PROGINC, options.progInc);
 
-			// set normal controls
-			drawKeyControls("Increment normal", Key.NORMINC, options.normInc);
-			drawKeyControls("Decrement normal", Key.NORMDEC, options.normDec);
+            drawKeyControls(Localizer.Format("#PN_DecrementPrograde"), Key.PROGDEC, options.progDec);
 
-			// set radial controls
-			drawKeyControls("Increment radial", Key.RADIINC, options.radiInc);
-			drawKeyControls("Decrement radial", Key.RADIDEC, options.radiDec);
+            // set normal controls
+            drawKeyControls(Localizer.Format("#PN_IncrementNormal"), Key.NORMINC, options.normInc);
 
-			// set time controls
-			drawKeyControls("Increment time", Key.TIMEINC, options.timeInc);
-			drawKeyControls("Decrement time", Key.TIMEDEC, options.timeDec);
+            drawKeyControls(Localizer.Format("#PN_DecrementNormal"), Key.NORMDEC, options.normDec);
 
-			// set paging controls
-			drawKeyControls("Page increment", Key.PAGEINC, options.pageIncrement);
-			drawKeyControls("Page conics", Key.PAGECON, options.pageConics);
+            // set radial controls
+            drawKeyControls(Localizer.Format("#PN_IncrementRadial"), Key.RADIINC, options.radiInc);
 
-			GUILayout.EndVertical();
+            drawKeyControls(Localizer.Format("#PN_DecrementRadial"), Key.RADIDEC, options.radiDec);
+
+            // set time controls
+            drawKeyControls(Localizer.Format("#PN_IncrementTime"), Key.TIMEINC, options.timeInc);
+
+            drawKeyControls(Localizer.Format("#PN_DecrementTime"), Key.TIMEDEC, options.timeDec);
+
+            // set paging controls
+            drawKeyControls(Localizer.Format("#PN_PageIncrement"), Key.PAGEINC, options.pageIncrement);
+
+            drawKeyControls(Localizer.Format("#PN_PageConics"), Key.PAGECON, options.pageConics);
+
+
+            GUILayout.EndVertical();
 			GUI.DragWindow();
 		}
 
 		private void drawKeyControls(string title, Key key, KeyCode currentKeyCode) {
 			GUILayout.BeginHorizontal();
 			GUILayout.Label(title + ": " + currentKeyCode.ToString(), GUILayout.Width(200));
-			GUIParts.drawButton("Set", GUI.backgroundColor, () => {
-				doWaitForKey("Press a key to bind " + title.ToLower() + "...", key);
+			GUIParts.drawButton(Localizer.Format("#PN_Set"), GUI.backgroundColor, () => {
+
+                doWaitForKey(Localizer.Format("#PN_PressKeyToBind") + " " + title.ToLower() + "...", key);
 			});
 			GUILayout.EndHorizontal();
 		}
@@ -701,30 +749,34 @@ namespace RegexKSP {
 			GUILayout.BeginVertical();
 			if(solver.maneuverNodes.Count < 1) {
 				GUILayout.BeginHorizontal();
-				GUILayout.Label("No nodes to show.", GUILayout.Width(200));
-				GUILayout.EndHorizontal();
+				GUILayout.Label(Localizer.Format("#PN_NoNodeToShow"), GUILayout.Width(200));
+
+                GUILayout.EndHorizontal();
 			} else {
 				double total = 0.0;
 				double timeNow = Planetarium.GetUniversalTime();
 
 				GUILayout.BeginHorizontal();
 				GUILayout.Label("", GUILayout.Width(60));
-				GUILayout.Label("Δv", GUILayout.Width(90));
-				GUILayout.Label("Time Until", GUILayout.Width(200));
-				GUILayout.Label("", GUILayout.Width(120));
+				GUILayout.Label(Localizer.Format("#PN_DV"), GUILayout.Width(90));
+
+                GUILayout.Label(Localizer.Format("#PN_TimeUntil"), GUILayout.Width(200));
+
+                GUILayout.Label("", GUILayout.Width(120));
 				GUILayout.EndHorizontal();
 
 				foreach(ManeuverNode curNode in solver.maneuverNodes) {
 					int idx = solver.maneuverNodes.IndexOf(curNode);
 					double timeDiff = curNode.UT - timeNow;
 					GUILayout.BeginHorizontal();
-					GUILayout.Label("Node " + (idx + 1), GUILayout.Width(60));
-					GUILayout.Label(curNode.DeltaV.magnitude.ToString("F2") + " m/s", GUILayout.Width(90));
-					GUILayout.Label(timeDiff.convertUTtoHumanDuration(), GUILayout.Width(200));
+					GUILayout.Label(Localizer.Format("#PN_Node") + " " + (idx + 1), GUILayout.Width(60));
+					GUILayout.Label(curNode.DeltaV.magnitude.ToString("F2") + " " + Localizer.Format("#PN_mPers"), GUILayout.Width(90));
+
+                    GUILayout.Label(timeDiff.convertUTtoHumanDuration(), GUILayout.Width(200));
 					if(idx > 0) {
-						GUIParts.drawButton("▲ Merge", Color.white, () => {
-							// schedule for next layout pass to not mess up maneuver nodes while iterating over them
-							scheduledForLayout.Add(() => {
+						GUIParts.drawButton("▲ " + Localizer.Format("#PN_Merge"), Color.white, () => {
+                            // schedule for next layout pass to not mess up maneuver nodes while iterating over them
+                            scheduledForLayout.Add(() => {
 								solver.maneuverNodes[idx].mergeNodeDown();
 							});
 						});
@@ -734,8 +786,9 @@ namespace RegexKSP {
 				}
 
 				GUILayout.BeginHorizontal();
-				GUILayout.Label("Total", GUILayout.Width(60));
-				GUILayout.Label(total.ToString("F2") + " m/s", GUILayout.Width(90));
+				GUILayout.Label(Localizer.Format("#PN_Total"), GUILayout.Width(60));
+
+                GUILayout.Label(total.ToString("F2") + " " + Localizer.Format("#PN_mPers"), GUILayout.Width(90));
 				GUILayout.Label("", GUILayout.Width(200));
 				GUILayout.EndHorizontal();
 			}
