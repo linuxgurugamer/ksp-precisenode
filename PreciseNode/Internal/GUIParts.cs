@@ -33,7 +33,12 @@ using KSP.IO;
 namespace RegexKSP {
 	internal static class GUIParts {
 		internal static void drawDoubleLabel(String text1, float width1, String text2, float width2) {
-			GUILayout.BeginHorizontal();
+            GUIContent content = new GUIContent(text1 + text2);
+            Vector2 size = GUI.skin.label.CalcSize(content);
+            if (size.x > width1 + width2)
+                width2 = size.x - width1;
+                
+            GUILayout.BeginHorizontal();
 			GUILayout.Label(text1, GUILayout.Width(width1));
 			GUILayout.Label(text2, GUILayout.Width(width2));
 			GUILayout.EndHorizontal();

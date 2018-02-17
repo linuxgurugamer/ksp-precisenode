@@ -343,7 +343,7 @@ namespace RegexKSP {
 
                     }
 				}
-				GUIParts.drawDoubleLabel(Localizer.Format("#PN_EjectionAngle") + ":", 100, einclination, 150);
+				GUIParts.drawDoubleLabel(Localizer.Format("#PN_EjectInclination") + ":", 100, einclination, 150);
 			}
 		}
 

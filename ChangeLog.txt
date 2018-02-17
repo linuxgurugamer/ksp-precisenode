@@ -1,3 +1,8 @@
+1.2.8.1
+	Fixed PN_EjectInclination
+	Added Spanish translation, thanks forum user @fitiales
+	Added Russian translation, thank forum user @AlexALX
+
 1.2.8
 	Localization
 	Click-through fixed, now requires the ClickThroughBlocker mod as a dependency
