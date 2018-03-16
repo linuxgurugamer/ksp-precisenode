@@ -1,7 +1,11 @@
+1.2.9
+	Updated for 1.4.1
+
 1.2.8.1
 	Fixed PN_EjectInclination
 	Added Spanish translation, thanks forum user @fitiales
 	Added Russian translation, thank forum user @AlexALX
+	Fixed width of time in clock window, should now adjust to the translated text size
 
 1.2.8
 	Localization

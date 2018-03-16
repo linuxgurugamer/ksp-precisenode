@@ -154,3 +154,4 @@ $RECYCLE.BIN/
 .DS_Store
 
 *.dll
+.vs
