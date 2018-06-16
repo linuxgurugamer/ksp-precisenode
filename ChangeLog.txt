@@ -1,3 +1,7 @@
+1.2.9.1
+	Added dependency checking
+	Updated version file for all 1.4
+
 1.2.9
 	Updated for 1.4.1
 
