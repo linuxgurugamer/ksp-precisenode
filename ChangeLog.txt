@@ -1,3 +1,6 @@
+1.2.9.2
+	Version bump for 1.5 rebuild
+
 1.2.9.1
 	Added dependency checking
 	Updated version file for all 1.4
