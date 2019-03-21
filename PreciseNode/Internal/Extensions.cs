@@ -48,8 +48,11 @@ namespace RegexKSP {
 		/// <returns>The converted time.</returns>
 		/// <param name="UT">Kerbal Space Program Universal Time.</param>
 		internal static String convertUTtoHumanTime(this double UT) {
-			return KSPUtil.dateTimeFormatter.PrintTimeStamp(UT, true, true);
-		}
+            //return KSPUtil.dateTimeFormatter.PrintDate(UT, true, true);
+            // Need to add secsInYear because the TimeStamp starts at year 0
+            double secsInYear = GameSettings.KERBIN_TIME ? 9201600 : 31536000;
+            return KSPUtil.dateTimeFormatter.PrintTimeStamp(UT + secsInYear, true, true);
+        }
 
 		/// <summary>
 		/// Converts the UT to human-readable duration.
