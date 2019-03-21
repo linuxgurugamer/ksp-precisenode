@@ -50,7 +50,7 @@ namespace RegexKSP {
 		internal static String convertUTtoHumanTime(this double UT) {
             //return KSPUtil.dateTimeFormatter.PrintDate(UT, true, true);
             // Need to add secsInYear because the TimeStamp starts at year 0
-            double secsInYear = GameSettings.KERBIN_TIME ? 9201600 : 31536000;
+            double secsInYear = GameSettings.KERBIN_TIME ? 9201600  + 21600: 31536000 + 86400;
             return KSPUtil.dateTimeFormatter.PrintTimeStamp(UT + secsInYear, true, true);
         }
 

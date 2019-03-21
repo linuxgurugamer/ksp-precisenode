@@ -1,3 +1,6 @@
+1.2.10.2
+	Now fixed time display so it isn't 1 day behind 
+
 1.2.10.1
 	Fixed display of time (was 1 year behind)
 
