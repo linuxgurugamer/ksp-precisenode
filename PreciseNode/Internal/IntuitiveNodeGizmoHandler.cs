@@ -215,7 +215,11 @@ namespace RegexKSP {
 		}
 
 		private void AttachHandleHandlers() {
-			if (this.maneuverNode.attachedGizmo.handlePrograde != null &&
+
+            if (this.maneuverNode.attachedGizmo == null)
+                return;
+
+            if (this.maneuverNode.attachedGizmo.handlePrograde != null &&
 				!this.maneuverNode.attachedGizmo.handlePrograde.OnHandleUpdate.GetInvocationList().Contains(
 				new ManeuverGizmoHandle.HandleUpdate(this.OnProgradeChange)))
 				this.maneuverNode.attachedGizmo.handlePrograde.OnHandleUpdate += this.OnProgradeChange;
@@ -247,32 +251,35 @@ namespace RegexKSP {
 		}
 
 		private void DetachHandleHandlers() {
+            if (this.maneuverNode.attachedGizmo == null)
+                return;
+            
 			if (this.maneuverNode.attachedGizmo.handlePrograde != null &&
 				this.maneuverNode.attachedGizmo.handlePrograde.OnHandleUpdate.GetInvocationList().Contains(
 				new ManeuverGizmoHandle.HandleUpdate(this.OnProgradeChange)))
 				this.maneuverNode.attachedGizmo.handlePrograde.OnHandleUpdate -= this.OnProgradeChange;
 
-			if (this.maneuverNode.attachedGizmo.handleRetrograde != null &&
+            if (this.maneuverNode.attachedGizmo.handleRetrograde != null &&
 				this.maneuverNode.attachedGizmo.handleRetrograde.OnHandleUpdate.GetInvocationList().Contains(
 				new ManeuverGizmoHandle.HandleUpdate(this.OnProgradeChange)))
 				this.maneuverNode.attachedGizmo.handleRetrograde.OnHandleUpdate -= this.OnProgradeChange;
 
-			if (this.maneuverNode.attachedGizmo.handleNormal != null &&
+            if (this.maneuverNode.attachedGizmo.handleNormal != null &&
 				this.maneuverNode.attachedGizmo.handleNormal.OnHandleUpdate.GetInvocationList().Contains(
 				new ManeuverGizmoHandle.HandleUpdate(this.OnNormalChange)))
 				this.maneuverNode.attachedGizmo.handleNormal.OnHandleUpdate -= this.OnNormalChange;
 
-			if (this.maneuverNode.attachedGizmo.handleAntiNormal != null &&
+            if (this.maneuverNode.attachedGizmo.handleAntiNormal != null &&
 				this.maneuverNode.attachedGizmo.handleAntiNormal.OnHandleUpdate.GetInvocationList().Contains(
 				new ManeuverGizmoHandle.HandleUpdate(this.OnNormalChange)))
 				this.maneuverNode.attachedGizmo.handleAntiNormal.OnHandleUpdate -= this.OnNormalChange;
 
-			if (this.maneuverNode.attachedGizmo.handleRadialIn != null &&
+            if (this.maneuverNode.attachedGizmo.handleRadialIn != null &&
 				this.maneuverNode.attachedGizmo.handleRadialIn.OnHandleUpdate.GetInvocationList().Contains(
 				new ManeuverGizmoHandle.HandleUpdate(this.OnRadialChange)))
 				this.maneuverNode.attachedGizmo.handleRadialIn.OnHandleUpdate -= this.OnRadialChange;
 
-			if (this.maneuverNode.attachedGizmo.handleRadialOut != null &&
+            if (this.maneuverNode.attachedGizmo.handleRadialOut != null &&
 				this.maneuverNode.attachedGizmo.handleRadialOut.OnHandleUpdate.GetInvocationList().Contains(
 				new ManeuverGizmoHandle.HandleUpdate(this.OnRadialChange)))
 				this.maneuverNode.attachedGizmo.handleRadialOut.OnHandleUpdate -= this.OnRadialChange;

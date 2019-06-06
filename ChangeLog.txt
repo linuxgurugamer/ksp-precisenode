@@ -1,3 +1,6 @@
+1.2.10.3
+	Fixed nullref spam after setting node in map view
+
 1.2.10.2
 	Now fixed time display so it isn't 1 day behind 
 
