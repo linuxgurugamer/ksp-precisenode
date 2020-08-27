@@ -1,5 +1,8 @@
 ChangeLog
 
+1.2.11.1
+	Removed constant looping in IntuitiveNodeGizmosManager UpdateIntuitiveManeuverHandlersList(), now remembers last solver obtained and only loops if it is different
+
 1.2.11
 	Added InstallChecker
 	Updated AssemblyVersion.tt

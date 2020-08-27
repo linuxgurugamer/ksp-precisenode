@@ -58,14 +58,23 @@ namespace RegexKSP {
 				this.maneuverGizmoHandlers[0].DeleteHandler();
 		}
 
+		PatchedConicSolver curSolver = null;
 		private void UpdateIntuitiveManeuverHandlersList() {
 			PatchedConicSolver solver = NodeTools.getSolver();
-			if (solver != null) {
-				List<ManeuverNode> nodes = solver.maneuverNodes;
-				for (int i = 0; i < nodes.Count; i++) {
-					ManeuverNode node = nodes[i];
-					if ((node.attachedGizmo != null) && !isHandled(node)) {
-						this.maneuverGizmoHandlers.Add(new IntuitiveNodeGizmoHandler(this, node, options));
+			if (solver != curSolver)
+			{
+				this.maneuverGizmoHandlers.Clear();
+				curSolver = solver;
+				if (solver != null)
+				{
+					List<ManeuverNode> nodes = solver.maneuverNodes;
+					for (int i = 0; i < nodes.Count; i++)
+					{
+						ManeuverNode node = nodes[i];
+						if ((node.attachedGizmo != null) && !isHandled(node))
+						{
+							this.maneuverGizmoHandlers.Add(new IntuitiveNodeGizmoHandler(this, node, options));
+						}
 					}
 				}
 			}
