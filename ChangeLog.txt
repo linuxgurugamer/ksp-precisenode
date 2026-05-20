@@ -1,5 +1,18 @@
 ChangeLog
 
+1.2.13
+	Thanks to github user @samnystrom for the following:
+		Adds an angle input to set the true anomaly, argument of latitude, or true longitude of the node (angle relative to Pe/AN/VE).
+		This is useful for a lot of things: getting a precise ejection angle, unusual plane changes for satellite constellations like Walker Delta, entering a calculated burn without converting true anomaly to UT, etc.
+	Replaced a  GUILayout.BeginHorizontal/EndHorizontal pairs with GUILayout.HorizontalScope, which should be more efficient and less error-prone.
+	Replaced a  GUILayout.BeginVertical/EndVertical pairs with GUILayout.VerticalScope, which should be more efficient and less error-prone.
+	Added an option to show or not show the Angle Input field, as some users may not find it useful and it does take up space in the window.
+	Added saving and loading of all options/window positions to a config file, so that they persist between sessions and flights.
+	Added tooltips to a number of controls.  
+	Added option to disable tooltips
+	Localized tooltips
+	Fixed label for Conics Mode to use localized text
+
 1.2.12
 	Thanks to Github user @WagnerGFX for this:
 		Fixed the Intuitive Maneuvers feature. The logic itself is intact, what I changed was another logic that detected new maneuver nodes to add the handler to override the stock behavior.

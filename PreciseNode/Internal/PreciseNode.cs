@@ -1,9 +1,9 @@
+using ClickThroughFix;
+using KSP.IO;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using KSP.IO;
-using KSP.Localization;
-using ClickThroughFix;
 
 /******************************************************************************
  * Copyright (c) 2013-2014, Justin Bengtson
@@ -33,101 +33,116 @@ using ClickThroughFix;
  * POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-namespace RegexKSP {
-	[KSPAddon(KSPAddon.Startup.Flight, false)]
-	internal class PreciseNode : MonoBehaviour {
-		private enum Key {
-			NONE,
-			PROGINC,
-			PROGDEC,
-			NORMINC,
-			NORMDEC,
-			RADIINC,
-			RADIDEC,
-			TIMEINC,
-			TIMEDEC,
-			PAGEINC,
-			PAGECON,
-			HIDEWINDOW,
-			ADDWIDGET
-		};
+namespace RegexKSP
+{
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    internal class PreciseNode : MonoBehaviour
+    {
+        private enum Key
+        {
+            NONE,
+            PROGINC,
+            PROGDEC,
+            NORMINC,
+            NORMDEC,
+            RADIINC,
+            RADIDEC,
+            TIMEINC,
+            TIMEDEC,
+            PAGEINC,
+            PAGECON,
+            HIDEWINDOW,
+            ADDWIDGET
+        };
 
-		internal static int VERSION = 11;
+        internal static int VERSION = 11;
 
-		private static readonly Color PROGRADE_COLOR = new Color(86, 144, 0);
-		private static readonly Color NORMAL_COLOR = new Color(151, 0, 162);
-		private static readonly Color RADIAL_COLOR = new Color(0, 136, 130);
+        private static readonly Color PROGRADE_COLOR = new Color(86, 144, 0);
+        private static readonly Color NORMAL_COLOR = new Color(151, 0, 162);
+        private static readonly Color RADIAL_COLOR = new Color(0, 136, 130);
 
-		private PreciseNodeOptions options = new PreciseNodeOptions();
-		private NodeManager curState = new NodeManager();
-		private List<Action> scheduledForLayout = new List<Action>();
-		private IntuitiveNodeGizmosManager intuitiveNodeGizmosManager;
+        private PreciseNodeOptions options = new PreciseNodeOptions();
+        private NodeManager curState = new NodeManager();
+        private List<Action> scheduledForLayout = new List<Action>();
+        private IntuitiveNodeGizmosManager intuitiveNodeGizmosManager;
 
-		private bool conicsLoaded;
-		private bool shown = true;
-		private bool showTimeNext;
-		private bool waitForKey;
-		private bool showOptions;
-		private bool showKeymapper;
-		private bool showEncounter;
-		private Key currentWaitKey = Key.NONE;
-		private double keyWaitTime = 0.0;
+        private bool conicsLoaded;
+        private bool shown = true;
+        private bool showTimeNext;
+        private bool waitForKey;
+        private bool showOptions;
+        private bool showKeymapper;
+        private bool showEncounter;
+        private Key currentWaitKey = Key.NONE;
+        private double keyWaitTime = 0.0;
 
-		private readonly int mainWindowId = WindowId.GetNext();
-		private readonly int optionsWindowId = WindowId.GetNext();
-		private readonly int keymapperWindowId = WindowId.GetNext();
-		private readonly int tripWindowId = WindowId.GetNext();
-		private readonly int clockWindowId = WindowId.GetNext();
-		private readonly int conicsWindowId = WindowId.GetNext();
+        private readonly int mainWindowId = WindowId.GetNext();
+        private readonly int optionsWindowId = WindowId.GetNext();
+        private readonly int keymapperWindowId = WindowId.GetNext();
+        private readonly int tripWindowId = WindowId.GetNext();
+        private readonly int clockWindowId = WindowId.GetNext();
+        private readonly int conicsWindowId = WindowId.GetNext();
 
-		/// <summary>
-		/// Overridden function from MonoBehavior
-		/// </summary>
-		internal void Awake() {
-			CancelInvoke();
-			loadConfig();
+        /// <summary>
+        /// Overridden function from MonoBehavior
+        /// </summary>
+        internal void Awake()
+        {
+            CancelInvoke();
+            loadConfig();
 
-			intuitiveNodeGizmosManager = new IntuitiveNodeGizmosManager(options);
+            intuitiveNodeGizmosManager = new IntuitiveNodeGizmosManager(options);
         }
 
-		/// <summary>
-		/// Overridden function from MonoBehavior
-		/// </summary>
-		internal void OnDisable() {
-			saveConfig();
-		}
+        /// <summary>
+        /// Overridden function from MonoBehavior
+        /// </summary>
+        internal void OnDisable()
+        {
+            saveConfig();
+        }
 
-		internal void OnDestroy() {
-			intuitiveNodeGizmosManager.OnDestroy();
-		}
+        internal void OnDestroy()
+        {
+            intuitiveNodeGizmosManager.OnDestroy();
+        }
 
-		/// <summary>
-		/// Overridden function from MonoBehavior
-		/// </summary>
-		internal void Update() {
-			if(!FlightDriver.Pause && canShowNodeEditor) {
+        /// <summary>
+        /// Overridden function from MonoBehavior
+        /// </summary>
+        internal void Update()
+        {
+            if (!FlightDriver.Pause && canShowNodeEditor)
+            {
                 PatchedConicSolver solver = NodeTools.getSolver();
-                if(solver.maneuverNodes.Count > 0) {
-                    if(!curState.hasNode() || !solver.maneuverNodes.Contains(curState.node)) {
+                if (solver.maneuverNodes.Count > 0)
+                {
+                    if (!curState.hasNode() || !solver.maneuverNodes.Contains(curState.node))
+                    {
                         // get the first one if we can't find the current or it's null
                         curState = new NodeManager(solver.maneuverNodes[0]);
                         curState.angleRefIndex = options.angleRefIndex;
                         curState.updateAngleText();
-                    } else if(curState.hasNode()) {
+                    }
+                    else if (curState.hasNode())
+                    {
                         curState.updateNode();
                         curState = curState.nextState();
                     }
-                } else {
-                    if(curState.hasNode()) {
+                }
+                else
+                {
+                    if (curState.hasNode())
+                    {
                         curState = new NodeManager();
                         curState.resizeClockWindow = true;
                     }
                 }
                 processKeyInput();
-			}
+            }
 
-			intuitiveNodeGizmosManager.OnUpdate();
-		}
+            intuitiveNodeGizmosManager.OnUpdate();
+        }
 
 #if NODE_CLEANUP
         internal void FixedUpdate() {
@@ -144,963 +159,1199 @@ namespace RegexKSP {
         }
 #endif
 
-		/// <summary>
-		/// Overridden function from MonoBehavior
-		/// </summary>
-		internal void OnGUI() {
-			// Porcess any scheduled functions
-			if(Event.current.type == EventType.Layout && !FlightDriver.Pause && scheduledForLayout.Count > 0) {
-				foreach(Action a in scheduledForLayout) {
-					a();
-				}
-				scheduledForLayout.Clear();
-			}
-			if(canShowNodeEditor) {
-				if(Event.current.type == EventType.Layout && !FlightDriver.Pause) {
-					// On layout we should see if we have nodes to act on.
-					if(curState.resizeMainWindow) {
-						options.mainWindowPos.height = 0;
-					}
-					if(curState.resizeClockWindow) {
-						options.clockWindowPos.height = 0;
-					}
-					showEncounter = curState.encounter;
-					// this prevents the clock window from showing the time to
-					// next node when the next state is created during repaint.
-					showTimeNext = curState.hasNode();
-				}
-				if(!conicsLoaded) {
-					NodeTools.changeConicsMode(options.conicsMode);
-					conicsLoaded = true;
-				}
-				if(shown) {
-					drawGUI();
-				}
-			}
-			if (canShowClock) {
-				drawClockGUI();
-			}
-			if (canShowConicsWindow) {
-				drawConicsGUI();
-			}
-		}
+        string tooltip = "";
+        Vector2 tooltipSize;
+        float tooltipX, tooltipY;
+        Rect tooltipRect;
 
-		/// <summary>
-		/// Draw Node Editor and Options GUI
-		/// </summary>
-		private void drawGUI() {
-			GUI.skin = null;
-			options.mainWindowPos = ClickThruBlocker.GUILayoutWindow(mainWindowId, options.mainWindowPos, (id) => drawMainWindow(),
-				Localizer.Format("#PN_PreciseNode"), GUILayout.ExpandHeight(true));
-
-            if (showOptions) {
-				options.optionsWindowPos = ClickThruBlocker.GUILayoutWindow(optionsWindowId, options.optionsWindowPos, (id) => drawOptionsWindow(),
-					Localizer.Format("#PN_PreciseNodeOptions"), GUILayout.ExpandHeight(true));
-
+        void SetupTooltip()
+        {
+            Vector2 mousePosition;
+            mousePosition.x = Input.mousePosition.x;
+            mousePosition.y = Screen.height - Input.mousePosition.y;
+            //  Log.Info("SetupTooltip, tooltip: " + tooltip);
+            if (tooltip != null && tooltip.Trim().Length > 0)
+            {
+                tooltipSize = HighLogic.Skin.label.CalcSize(new GUIContent(tooltip));
+                tooltipX = (mousePosition.x + tooltipSize.x > Screen.width) ? (Screen.width - tooltipSize.x) : mousePosition.x;
+                tooltipY = mousePosition.y;
+                if (tooltipX < 0) tooltipX = 0;
+                if (tooltipY < 0) tooltipY = 0;
+                tooltipRect = new Rect(tooltipX - 1, tooltipY - tooltipSize.y, tooltipSize.x + 4, tooltipSize.y);
             }
-			if(showKeymapper) {
-				options.keymapperWindowPos = ClickThruBlocker.GUILayoutWindow(keymapperWindowId, options.keymapperWindowPos, (id) => drawKeymapperWindow(),
-					Localizer.Format("#PN_PreciseNodeKeys"), GUILayout.ExpandHeight(true));
+        }
+        void TooltipWindow(int id)
+        {
+            GUI.BringWindowToFront(id);
+            GUI.Label(new Rect(2, 0, tooltipRect.width - 2, tooltipRect.height), tooltip, HighLogic.Skin.label);
+        }
 
+
+
+
+
+
+
+        /// <summary>
+        /// Overridden function from MonoBehavior
+        /// </summary>
+        internal void OnGUI()
+        {
+            // Process any scheduled functions
+            if (Event.current.type == EventType.Layout && !FlightDriver.Pause && scheduledForLayout.Count > 0)
+            {
+                foreach (Action a in scheduledForLayout)
+                {
+                    a();
+                }
+                scheduledForLayout.Clear();
             }
-			if(options.showTrip) {
-				options.tripWindowPos = ClickThruBlocker.GUILayoutWindow(tripWindowId, options.tripWindowPos, (id) => drawTripWindow(),
-					Localizer.Format("#PN_TripInfo"), GUILayout.ExpandHeight(true));
 
+            if (shown && options.showTooltips)
+            {
+                SetupTooltip();
+                if (tooltip != null && tooltip.Trim().Length > 0)
+                    ClickThruBlocker.GUIWindow(1234, tooltipRect, TooltipWindow, "");
             }
-		}
+            if (canShowNodeEditor)
+            {
+                if (Event.current.type == EventType.Layout && !FlightDriver.Pause)
+                {
+                    // On layout we should see if we have nodes to act on.
+                    if (curState.resizeMainWindow)
+                    {
+                        options.mainWindowPos.height = 0;
+                    }
+                    if (curState.resizeClockWindow)
+                    {
+                        options.clockWindowPos.height = 0;
+                    }
+                    showEncounter = curState.encounter;
+                    // this prevents the clock window from showing the time to
+                    // next node when the next state is created during repaint.
+                    showTimeNext = curState.hasNode();
+                }
+                if (!conicsLoaded)
+                {
+                    NodeTools.changeConicsMode(options.conicsMode);
+                    conicsLoaded = true;
+                }
+                if (shown)
+                {
+                    drawGUI();
+                }
+            }
+            if (canShowClock)
+            {
+                drawClockGUI();
+            }
+            if (canShowConicsWindow)
+            {
+                drawConicsGUI();
+            }
+        }
 
-		/// <summary>
-		/// Draw Clock GUI
-		/// </summary>
-		private void drawClockGUI() {
-			GUI.skin = null;
-			options.clockWindowPos = ClickThruBlocker.GUILayoutWindow(clockWindowId, options.clockWindowPos, (id) => drawClockWindow(),
-				Localizer.Format("#PN_Clock"), GUILayout.ExpandHeight(true));
+        /// <summary>
+        /// Draw Node Editor and Options GUI
+        /// </summary>
+        private void drawGUI()
+        {
+            GUI.skin = null;
+            var oldPos = options.mainWindowPos;
+            options.mainWindowPos = ClickThruBlocker.GUILayoutWindow(mainWindowId, options.mainWindowPos, (id) => drawMainWindow(),
+                Localizer.Format("#PN_PreciseNode"), GUILayout.ExpandHeight(true));
+            if (oldPos != options.mainWindowPos)
+                options.SaveSettings();
+
+            if (showOptions)
+            {
+                oldPos = options.optionsWindowPos;
+                options.optionsWindowPos = ClickThruBlocker.GUILayoutWindow(optionsWindowId, options.optionsWindowPos, (id) => drawOptionsWindow(),
+                    Localizer.Format("#PN_PreciseNodeOptions"), GUILayout.ExpandHeight(true));
+                if (oldPos != options.optionsWindowPos)
+                    options.SaveSettings();
+            }
+            if (showKeymapper)
+            {
+                oldPos = options.keymapperWindowPos;
+                options.keymapperWindowPos = ClickThruBlocker.GUILayoutWindow(keymapperWindowId, options.keymapperWindowPos, (id) => drawKeymapperWindow(),
+                    Localizer.Format("#PN_PreciseNodeKeys"), GUILayout.ExpandHeight(true));
+                if (oldPos != options.keymapperWindowPos)
+                    options.SaveSettings();
+            }
+            if (options.showTrip)
+            {
+                oldPos = options.tripWindowPos;
+                options.tripWindowPos = ClickThruBlocker.GUILayoutWindow(tripWindowId, options.tripWindowPos, (id) => drawTripWindow(),
+                    Localizer.Format("#PN_TripInfo"), GUILayout.ExpandHeight(true));
+                if (oldPos != options.tripWindowPos)
+                    options.SaveSettings();
+            }
+        }
+
+        /// <summary>
+        /// Draw Clock GUI
+        /// </summary>
+        private void drawClockGUI()
+        {
+            GUI.skin = null;
+            var oldPos = options.clockWindowPos;
+            options.clockWindowPos = ClickThruBlocker.GUILayoutWindow(clockWindowId, options.clockWindowPos, (id) => drawClockWindow(),
+                Localizer.Format("#PN_Clock"), GUILayout.ExpandHeight(true));
+            if (oldPos != options.clockWindowPos)
+                options.SaveSettings();
+        }
+
+        /// <summary>
+        /// Draw Conics GUI
+        /// </summary>
+        private void drawConicsGUI()
+        {
+            GUI.skin = null;
+            var oldPos = options.conicsWindowPos;
+            options.conicsWindowPos = ClickThruBlocker.GUILayoutWindow(conicsWindowId, options.conicsWindowPos, (id) => drawConicsWindow(),
+                Localizer.Format("#PN_ConicsControls"), GUILayout.ExpandHeight(true));
+            if (oldPos != options.conicsWindowPos)
+                options.SaveSettings();
 
         }
 
-		/// <summary>
-		/// Draw Conics GUI
-		/// </summary>
-		private void drawConicsGUI() {
-			GUI.skin = null;
-			options.conicsWindowPos = ClickThruBlocker.GUILayoutWindow(conicsWindowId, options.conicsWindowPos, (id) => drawConicsWindow(),
-				Localizer.Format("#PN_ConicsControls"), GUILayout.ExpandHeight(true));
+        /// <summary>
+        /// Draws the Node Editor window.
+        /// </summary>
+        private void drawMainWindow()
+        {
+            Color defaultColor = GUI.backgroundColor;
+            Color contentColor = GUI.contentColor;
+            Color curColor = defaultColor;
+            PatchedConicSolver solver = NodeTools.getSolver();
 
-        }
-
-		/// <summary>
-		/// Draws the Node Editor window.
-		/// </summary>
-		private void drawMainWindow() {
-			Color defaultColor = GUI.backgroundColor;
-			Color contentColor = GUI.contentColor;
-			Color curColor = defaultColor;
-			PatchedConicSolver solver = NodeTools.getSolver();
-
-			// Options button
-			if(showOptions) { GUI.backgroundColor = Color.green; }
-			if(GUI.Button(new Rect(options.mainWindowPos.width - 48, 2, 22, 18), Localizer.Format("#PN_O"))) {
+            // Options button
+            if (showOptions) { GUI.backgroundColor = Color.green; }
+            if (GUI.Button(new Rect(options.mainWindowPos.width - 48, 2, 22, 18), Localizer.Format("#PN_O")))
+            {
 
                 showOptions = !showOptions;
-			}
-			GUI.backgroundColor = defaultColor;
+                if (!showOptions)
+                {
+                    options.SaveSettings();
+                }
+            }
+            GUI.backgroundColor = defaultColor;
 
-			// Keymapping button
-			if(showKeymapper) { GUI.backgroundColor = Color.green; }
-			if(GUI.Button(new Rect(options.mainWindowPos.width - 24, 2, 22, 18), Localizer.Format("#PN_K"))) {
+            // Keymapping button
+            if (showKeymapper) { GUI.backgroundColor = Color.green; }
+            if (GUI.Button(new Rect(options.mainWindowPos.width - 24, 2, 22, 18), Localizer.Format("#PN_K")))
+            {
 
                 showKeymapper = !showKeymapper;
-			}
-			GUI.backgroundColor = defaultColor;
+            }
+            GUI.backgroundColor = defaultColor;
 
-			GUILayout.BeginVertical();
-			if(options.showManeuverPager) {
-				drawManeuverPager();
-			}
+            using (new GUILayout.VerticalScope())
+            {
+                if (options.showManeuverPager)
+                {
+                    drawManeuverPager();
+                }
 
-			// Human-readable time
-			GUIParts.drawDoubleLabel(Localizer.Format("#PN_Time"), 100, curState.currentUT().convertUTtoHumanTime(), 150);
+                // Human-readable time
+                GUIParts.drawDoubleLabel(Localizer.Format("#PN_Time"), 100, curState.currentUT().convertUTtoHumanTime(), 150);
 
-            // Increment buttons
-            GUILayout.BeginHorizontal();
-			GUILayout.Label(Localizer.Format("#PN_Increment") + ":", GUILayout.Width(100));
-			GUIParts.drawButton("0.01", (options.increment == 0.01?Color.yellow:defaultColor), () => { options.increment = 0.01; });
-			GUIParts.drawButton("0.1", (options.increment == 0.1?Color.yellow:defaultColor), () => { options.increment = 0.1; });
-			GUIParts.drawButton("1", (options.increment == 1?Color.yellow:defaultColor), () => { options.increment = 1; });
-			GUIParts.drawButton("10", (options.increment == 10?Color.yellow:defaultColor), () => { options.increment = 10; });
-			GUIParts.drawButton("100", (options.increment == 100?Color.yellow:defaultColor), () => { options.increment = 100; });
-			GUILayout.EndHorizontal();
+                // Increment buttons
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.Label(Localizer.Format("#PN_Increment") + ":", GUILayout.Width(100));
+                    GUIParts.drawButton("0.01", (options.increment == 0.01 ? Color.yellow : defaultColor), () => { options.increment = 0.01; });
+                    GUIParts.drawButton("0.1", (options.increment == 0.1 ? Color.yellow : defaultColor), () => { options.increment = 0.1; });
+                    GUIParts.drawButton("1", (options.increment == 1 ? Color.yellow : defaultColor), () => { options.increment = 1; });
+                    GUIParts.drawButton("10", (options.increment == 10 ? Color.yellow : defaultColor), () => { options.increment = 10; });
+                    GUIParts.drawButton("100", (options.increment == 100 ? Color.yellow : defaultColor), () => { options.increment = 100; });
+                }
 
-			drawTimeControls(contentColor);
+                drawTimeControls(contentColor);
 
-			GUILayout.BeginHorizontal();
-				GUILayout.BeginVertical();
-					drawProgradeControls(contentColor);
-					drawNormalControls(contentColor);
-					drawRadialControls(contentColor);
-				GUILayout.EndVertical();
-				GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
-					GUIParts.drawButton(Localizer.Format("#PN_MS"), defaultColor, () => {
+                using (new GUILayout.HorizontalScope())
+                {
+                    using (new GUILayout.VerticalScope())
+                    {
+                        drawProgradeControls(contentColor);
+                        drawNormalControls(contentColor);
+                        drawRadialControls(contentColor);
+                    }
+                    using (new GUILayout.VerticalScope(GUILayout.ExpandHeight(true)))
+                    {
+                        GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_MS"), Localizer.Format("#PN_Store")), defaultColor, () =>
+                        {
 
-                        curState.memorize();
-					}, GUILayout.ExpandHeight(true));
-					GUI.enabled = curState.HasMemorized;
-					GUIParts.drawButton(Localizer.Format("#PN_MR"), defaultColor, () => {
+                            curState.memorize();
+                        }, GUILayout.ExpandHeight(true));
+                        GUI.enabled = curState.HasMemorized;
+                        GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_MR"), Localizer.Format("#PN_Recall")), defaultColor, () =>
+                        {
 
-                        curState.recallMemory();
-					}, GUILayout.ExpandHeight(true));
-					GUI.enabled = true;
-				GUILayout.EndVertical();
-			GUILayout.EndHorizontal();
+                            curState.recallMemory();
+                        }, GUILayout.ExpandHeight(true));
+                        GUI.enabled = true;
+                    }
+                }
 
-			// total delta-V display
-			GUIParts.drawDoubleLabel(Localizer.Format("#PN_TotalDV") + ":", 100, curState.currentMagnitude().ToString("0.##") + " " + Localizer.Format("#PN_mPers"), 130);
+                // total delta-V display
+                GUIParts.drawDoubleLabel(Localizer.Format("#PN_TotalDV") + ":", 100, curState.currentMagnitude().ToString("0.##") + " " + Localizer.Format("#PN_mPers"), 130);
 
 
-            drawEAngle();
-			drawEncounter(defaultColor);
+                drawEAngle();
+                drawEncounter(defaultColor);
 
-			// Conics mode controls
-			if (options.showConics) {
-				GUIParts.drawConicsControls(options);
-			}
-			
-			// trip info button and vessel focus buttons
-			GUILayout.BeginHorizontal();
-			GUIParts.drawButton(Localizer.Format("#PN_TripInfo"), (options.showTrip?Color.yellow:defaultColor), () => { options.showTrip = !options.showTrip; });
+                // Conics mode controls
+                if (options.showConics)
+                {
+                    GUIParts.drawConicsControls(options);
+                }
 
-            GUIParts.drawButton(Localizer.Format("#PN_FocusOnVessel"), defaultColor, () => {
+                // trip info button and vessel focus buttons
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUIParts.drawButton(Localizer.Format("#PN_TripInfo"), (options.showTrip ? Color.yellow : defaultColor), () => { options.showTrip = !options.showTrip; });
 
-                MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.vessel != null) && o.vessel.Equals(FlightGlobals.ActiveVessel));
-				MapView.MapCamera.SetTarget(mapObject);
-			});
-			GUILayout.EndHorizontal();
-			
-			GUILayout.EndVertical();
-			GUI.DragWindow();
-		}
+                    GUIParts.drawButton(Localizer.Format("#PN_FocusOnVessel"), defaultColor, () =>
+                    {
 
-		private void drawEAngle() {
-			// Ejection angle
-			if(options.showEAngle) {
-				String eangle = Localizer.Format("#PN_na");
+                        MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.vessel != null) && o.vessel.Equals(FlightGlobals.ActiveVessel));
+                        MapView.MapCamera.SetTarget(mapObject);
+                    });
+                }
 
-                if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
-					double angle = FlightGlobals.ActiveVessel.orbit.getEjectionAngle(curState.node);
-					if (!double.IsNaN(angle)) {
-						eangle = Math.Abs(angle).ToString("0.##") + "° " + Localizer.Format("#PN_From") + " " + ((angle >= 0) ? Localizer.Format("#PN_prograde") : Localizer.Format("#PN_retrograde"));
+            }
+
+            if (Event.current.type == EventType.Repaint && GUI.tooltip != tooltip)
+                tooltip = GUI.tooltip;
+
+            GUI.DragWindow();
+        }
+
+        private void drawEAngle()
+        {
+            // Ejection angle
+            if (options.showEAngle)
+            {
+                String eangle = Localizer.Format("#PN_na");
+
+                if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun())
+                {
+                    double angle = FlightGlobals.ActiveVessel.orbit.getEjectionAngle(curState.node);
+                    if (!double.IsNaN(angle))
+                    {
+                        eangle = Math.Abs(angle).ToString("0.##") + "° " + Localizer.Format("#PN_From") + " " + ((angle >= 0) ? Localizer.Format("#PN_prograde") : Localizer.Format("#PN_retrograde"));
 
                     }
-				}
-				GUIParts.drawDoubleLabel(Localizer.Format("#PN_EjectionAngle") + ":", 100, eangle, 150);
+                }
+                GUIParts.drawDoubleLabel(Localizer.Format("#PN_EjectionAngle") + ":", 100, eangle, 150);
 
-				String einclination = Localizer.Format("#PN_na");
+                String einclination = Localizer.Format("#PN_na");
 
-                if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
-					double angle = FlightGlobals.ActiveVessel.orbit.getEjectionInclination(curState.node);
-					if (!double.IsNaN(angle)) {
-						einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? Localizer.Format("#PN_north") : Localizer.Format("#PN_south"));
+                if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun())
+                {
+                    double angle = FlightGlobals.ActiveVessel.orbit.getEjectionInclination(curState.node);
+                    if (!double.IsNaN(angle))
+                    {
+                        einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? Localizer.Format("#PN_north") : Localizer.Format("#PN_south"));
 
                     }
-				}
-				GUIParts.drawDoubleLabel(Localizer.Format("#PN_EjectInclination") + ":", 100, einclination, 150);
-			}
-		}
+                }
+                GUIParts.drawDoubleLabel(Localizer.Format("#PN_EjectInclination") + ":", 100, einclination, 150);
+            }
+        }
 
-		private void drawEncounter(Color defaultColor) {
-			// Additional Information
-			if(options.showOrbitInfo) {
-				// Find the next encounter, if any, in our flight plan.
-				if(showEncounter) {
-					Orbit nextEnc = curState.node.findNextEncounter();
-					string name = Localizer.Format("#PN_na");
+        private void drawEncounter(Color defaultColor)
+        {
+            // Additional Information
+            if (options.showOrbitInfo)
+            {
+                // Find the next encounter, if any, in our flight plan.
+                if (showEncounter)
+                {
+                    Orbit nextEnc = curState.node.findNextEncounter();
+                    string name = Localizer.Format("#PN_na");
 
                     string theName = Localizer.Format("#PN_na");
                     string PeA = Localizer.Format("#PN_na");
 
-                    if (nextEnc != null) {
-						name = nextEnc.referenceBody.name;
-						theName = nextEnc.referenceBody.bodyName;
-						PeA = nextEnc.PeA.formatMeters();
-					} else {
-						curState.encounter = false;
-					}
-					// Next encounter periapsis
-					GUIParts.drawDoubleLabel("(" + name + ") " + Localizer.Format("#PN_Pe") + ":", 100, PeA, 130);
-					GUILayout.BeginHorizontal();
-					GUILayout.Label("", GUILayout.Width(100));
-					GUIParts.drawButton(Localizer.Format("#PN_FocusOn") + " " + theName, defaultColor, () => {
-						MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.celestialBody != null) && (o.celestialBody.name == name));
-						MapView.MapCamera.SetTarget(mapObject);
-					});
-					GUILayout.EndHorizontal();
-				} else {
-					if(curState.node.solver.flightPlan.Count > 1) {
-						// output the apoapsis and periapsis of our projected orbit.
-						GUIParts.drawDoubleLabel(Localizer.Format("#PN_Apoapsis") + ":", 100, curState.node.nextPatch.ApA.formatMeters(), 100);
-						GUIParts.drawDoubleLabel(Localizer.Format("#PN_Periapsis") + ":", 100, curState.node.nextPatch.PeA.formatMeters(), 130);
-						GUIParts.drawDoubleLabel(Localizer.Format("#PN_Inclination") + ":", 100, Math.Abs(curState.node.nextPatch.inclination).ToString("0.##") + "°", 150);
-					}
-				}
-			}
-		}
+                    if (nextEnc != null)
+                    {
+                        name = nextEnc.referenceBody.name;
+                        theName = nextEnc.referenceBody.bodyName;
+                        PeA = nextEnc.PeA.formatMeters();
+                    }
+                    else
+                    {
+                        curState.encounter = false;
+                    }
+                    // Next encounter periapsis
+                    GUIParts.drawDoubleLabel("(" + name + ") " + Localizer.Format("#PN_Pe") + ":", 100, PeA, 130);
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label("", GUILayout.Width(100));
+                        GUIParts.drawButton(Localizer.Format("#PN_FocusOn") + " " + theName, defaultColor, () =>
+                        {
+                            MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.celestialBody != null) && (o.celestialBody.name == name));
+                            MapView.MapCamera.SetTarget(mapObject);
+                        });
+                    }
+                }
+                else
+                {
+                    if (curState.node.solver.flightPlan.Count > 1)
+                    {
+                        // output the apoapsis and periapsis of our projected orbit.
+                        GUIParts.drawDoubleLabel(Localizer.Format("#PN_Apoapsis") + ":", 100, curState.node.nextPatch.ApA.formatMeters(), 100);
+                        GUIParts.drawDoubleLabel(Localizer.Format("#PN_Periapsis") + ":", 100, curState.node.nextPatch.PeA.formatMeters(), 130);
+                        GUIParts.drawDoubleLabel(Localizer.Format("#PN_Inclination") + ":", 100, Math.Abs(curState.node.nextPatch.inclination).ToString("0.##") + "°", 150);
+                    }
+                }
+            }
+        }
 
-		private void drawTimeControls(Color contentColor) {
-			// Universal time controls
-			GUILayout.BeginHorizontal();
-            // possible problem with localization in following line
-            GUILayout.Label((options.largeUTIncrement ? Localizer.Format("#PN_UT") + ": (x10 " + Localizer.Format("#PN_Inc") + ")" : Localizer.Format("#PN_UT") + ":"), GUILayout.Width(100));
-            if (!curState.timeParsed) {
-				GUI.contentColor = Color.red;
-			}
-			string check = GUILayout.TextField(curState.timeText, GUILayout.Width(100));
-			if(!curState.timeText.Equals(check, StringComparison.Ordinal)) {
-				curState.setUT(check);
-			}
-			GUI.contentColor = contentColor;
-			double currentUT = curState.currentUT();
-			double ut_increment = options.increment * (options.largeUTIncrement ? 10.0 : 1.0);
-			GUIParts.drawPlusMinusButtons(() => { curState.addUT(ut_increment); }, () => { curState.addUT(-ut_increment); },
-				true, curState.node.patch.isUTInsidePatch(currentUT - ut_increment));
-			GUILayout.EndHorizontal();
+        private void drawTimeControls(Color contentColor)
+        {
+            // Universal time controls
+            double currentUT;
+            double ut_increment;
 
-			// Angle-based position row
-			GUILayout.BeginHorizontal();
-			int newRef = GUILayout.Toolbar(curState.angleRefIndex,
-				new string[] {
-					Localizer.Format("#PN_AngleRef_Pe"),
-					Localizer.Format("#PN_AngleRef_AN"),
-					Localizer.Format("#PN_AngleRef_VE")
-				}, GUILayout.Width(130));
-			if (newRef != curState.angleRefIndex) {
-				curState.setAngleRef(newRef);
-				options.angleRefIndex = newRef;
-			}
-			if (!curState.angleParsed) {
-				GUI.contentColor = Color.red;
-			}
-			string angleCheck = GUILayout.TextField(curState.angleText, GUILayout.Width(70));
-			if (!curState.angleText.Equals(angleCheck, StringComparison.Ordinal)) {
-				curState.setAngle(angleCheck);
-			}
-			GUI.contentColor = contentColor;
-			GUIParts.drawPlusMinusButtons(
-				() => { curState.addAngle(options.increment); },
-				() => { curState.addAngle(-options.increment); }
-			);
-			GUILayout.EndHorizontal();
+            using (new GUILayout.HorizontalScope())
+            {
+                // possible problem with localization in following line
+                GUILayout.Label((options.largeUTIncrement ? Localizer.Format("#PN_UT") + ": (x10 " + Localizer.Format("#PN_Inc") + ")" : Localizer.Format("#PN_UT") + ":"), GUILayout.Width(100));
+                if (!curState.timeParsed)
+                {
+                    GUI.contentColor = Color.red;
+                }
+                string check = GUILayout.TextField(curState.timeText, GUILayout.Width(100));
+                if (!curState.timeText.Equals(check, StringComparison.Ordinal))
+                {
+                    curState.setUT(check);
+                }
+                GUI.contentColor = contentColor;
+                currentUT = curState.currentUT();
+                ut_increment = options.increment * (options.largeUTIncrement ? 10.0 : 1.0);
+                GUIParts.drawPlusMinusButtons(() => { curState.addUT(ut_increment); }, () => { curState.addUT(-ut_increment); },
+                    true, curState.node.patch.isUTInsidePatch(currentUT - ut_increment));
+            }
+            // Angle-based position row
+            if (options.showAngleInput)
+            {
+                using (new GUILayout.HorizontalScope())
+                {
+                    int newRef = GUILayout.Toolbar(curState.angleRefIndex,
+                        new GUIContent[] 
+                        {
+                            new GUIContent(Localizer.Format("#PN_AngleRef_Pe"), Localizer.Format("#PN_SetTrueAnomaly")),
+                            new GUIContent(Localizer.Format("#PN_AngleRef_AN"), Localizer.Format("#PN_SetArgumentOfLatitude")),
+                            new GUIContent(Localizer.Format("#PN_AngleRef_VE"), Localizer.Format("#PN_SetTrueLongitude"))
+                        }, 
+                        GUILayout.Width(130));
+                    if (newRef != curState.angleRefIndex)
+                    {
+                        curState.setAngleRef(newRef);
+                        options.angleRefIndex = newRef;
+                    }
+                    if (!curState.angleParsed)
+                    {
+                        GUI.contentColor = Color.red;
+                    }
+                    string angleCheck = GUILayout.TextField(curState.angleText, GUILayout.Width(70));
+                    if (!curState.angleText.Equals(angleCheck, StringComparison.Ordinal))
+                    {
+                        curState.setAngle(angleCheck);
+                    }
+                    GUI.contentColor = contentColor;
+                    GUIParts.drawPlusMinusButtons(
+                        () => { curState.addAngle(options.increment); },
+                        () => { curState.addAngle(-options.increment); }
+                    );
+                }
+            }
 
-			// extended time controls
-			if(options.showUTControls) {
-				Orbit targ = NodeTools.getTargetOrbit();
+            // extended time controls
+            if (options.showUTControls)
+            {
+                Orbit targ = NodeTools.getTargetOrbit();
 
-				GUILayout.BeginHorizontal();
-				GUIParts.drawButton(Localizer.Format("#PN_Peri"), Color.yellow, () => { curState.setPeriapsis(); });
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_Peri"), Localizer.Format("#PN_SetNodeAtPe")), Color.yellow, () => { curState.setPeriapsis(); });
+                    GUI.enabled = curState.node.hasDN(targ);
+                    GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_DN"), Localizer.Format("#PN_SetNodeAtDn")), Color.magenta, () =>
+                    {
 
-                GUI.enabled = curState.node.hasDN(targ);
-				GUIParts.drawButton(Localizer.Format("#PN_DN"), Color.magenta, () => {
+                        if (targ != null)
+                        {
+                            curState.setUT(curState.node.patch.getTargetDNUT(targ));
+                        }
+                        else
+                        {
+                            curState.setUT(curState.node.patch.getEquatorialDNUT());
+                        }
+                    });
+                    if (options.largeUTIncrement)
+                    {
+                        GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT - curState.node.patch.period);
+                        GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_MinusOrb"), Localizer.Format("#PN_PreviousOrbit")), Color.red, () => { curState.addUT(-curState.node.patch.period); });
 
-                    if (targ != null) {
-						curState.setUT(curState.node.patch.getTargetDNUT(targ));
-					} else {
-						curState.setUT(curState.node.patch.getEquatorialDNUT());
-					}
-				});
-				if (options.largeUTIncrement) {
-					GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT - curState.node.patch.period);
-					GUIParts.drawButton(Localizer.Format("#PN_MinusOrb"), Color.red, () => { curState.addUT(-curState.node.patch.period); });
+                        GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT + curState.node.patch.period);
+                        GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_PlusOrb"), Localizer.Format("#PN_NextOrbit")), Color.green, () => { curState.addUT(curState.node.patch.period); });
 
-                    GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT + curState.node.patch.period);
-					GUIParts.drawButton(Localizer.Format("#PN_PlusOrb"), Color.green, () => { curState.addUT(curState.node.patch.period); });
+                    }
+                    else
+                    {
+                        GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT - 1000);
+                        GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_Minus1K"), Localizer.Format("#PN_UTMinus1000")), Color.red, () => { curState.addUT(-1000); });
 
-                } else {
-					GUI.enabled = curState.node.patch.isUTInsidePatch(currentUT - 1000);
-					GUIParts.drawButton(Localizer.Format("#PN_Minus1K"), Color.red, () => { curState.addUT(-1000); });
+                        GUI.enabled = true;
+                        GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_Plus1K"), Localizer.Format("#PN_UTPlus1000")), Color.green, () => { curState.addUT(1000); });
 
-                    GUI.enabled = true;
-					GUIParts.drawButton(Localizer.Format("#PN_Plus1K"), Color.green, () => { curState.addUT(1000); });
+                    }
+                    GUI.enabled = curState.node.hasAN(targ);
+                    GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_AN"), Localizer.Format("#PN_SetNodeAtAn")), Color.cyan, () =>
+                    {
+
+                        if (targ != null)
+                        {
+                            curState.setUT(curState.node.patch.getTargetANUT(targ));
+                        }
+                        else
+                        {
+                            curState.setUT(curState.node.patch.getEquatorialANUT());
+                        }
+                    });
+                    GUI.enabled = curState.node.patch.hasAP();
+                    GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_Apo"), Localizer.Format("#PN_SetNodeAtAp")), Color.blue, () => { curState.setApoapsis(); });
 
                 }
-				GUI.enabled = curState.node.hasAN(targ);
-				GUIParts.drawButton(Localizer.Format("#PN_AN"), Color.cyan, () => {
+            }
 
-                    if (targ != null) {
-						curState.setUT(curState.node.patch.getTargetANUT(targ));
-					} else {
-						curState.setUT(curState.node.patch.getEquatorialANUT());
-					}
-				});
-				GUI.enabled = curState.node.patch.hasAP();
-				GUIParts.drawButton(Localizer.Format("#PN_Apo"), Color.blue, () => { curState.setApoapsis(); });
+            GUI.enabled = true;
+        }
 
-                GUILayout.EndHorizontal();
-			}
-
-			GUI.enabled = true;
-		}
-
-		private void drawProgradeControls(Color contentColor) {
-			Color oldContentColor = GUI.contentColor;
-			Color oldBackgroundColor = GUI.backgroundColor;
-			// Prograde controls
-			GUILayout.BeginHorizontal();
-			GUI.contentColor = PROGRADE_COLOR;
-			GUILayout.Label(Localizer.Format("#PN_Prograde") + ":", GUILayout.Width(100));
-			if (!curState.progradeParsed) {
-				GUI.contentColor = Color.red;
-				GUI.backgroundColor = Color.red;
-			}
-			string check = GUILayout.TextField(curState.progradeText, GUILayout.Width(70));
-			GUI.contentColor = oldContentColor;
-			GUI.backgroundColor = oldBackgroundColor;
-			if(!curState.progradeText.Equals(check, StringComparison.Ordinal)) {
-				curState.setPrograde(check);
-			}
-			GUIParts.drawPlusMinusButtons(() => {
-				curState.addPrograde(options.increment);
-			}, () => {
-				curState.addPrograde(-options.increment);
-			});
-			GUILayout.EndHorizontal();
-		}
-
-		private void drawNormalControls(Color contentColor) {
-			Color oldContentColor = GUI.contentColor;
-			Color oldBackgroundColor = GUI.backgroundColor;
-			// Normal controls
-			GUILayout.BeginHorizontal();
-			GUI.contentColor = NORMAL_COLOR;
-			GUILayout.Label(Localizer.Format("#PN_Normal") + ":", GUILayout.Width(100));
-			if (!curState.normalParsed) {
-				GUI.contentColor = Color.red;
-				GUI.backgroundColor = Color.red;
-			}
-			string check = GUILayout.TextField(curState.normalText, GUILayout.Width(70));
-			GUI.contentColor = oldContentColor;
-			GUI.backgroundColor = oldBackgroundColor;
-			if (!curState.normalText.Equals(check, StringComparison.Ordinal)) {
-				curState.setNormal(check);
-			}
-			GUI.contentColor = contentColor;
-			GUIParts.drawPlusMinusButtons(() => {
-				curState.addNormal(options.increment);
-			}, () => {
-				curState.addNormal(-options.increment);
-			});
-			GUILayout.EndHorizontal();
-		}
-
-		private void drawRadialControls(Color contentColor) {
-			Color oldContentColor = GUI.contentColor;
-			Color oldBackgroundColor = GUI.backgroundColor;
-			// radial controls
-			GUILayout.BeginHorizontal();
-			GUI.contentColor = RADIAL_COLOR;
-			GUILayout.Label(Localizer.Format("#PN_Radial") + ":", GUILayout.Width(100));
-			if (!curState.radialParsed) {
-				GUI.contentColor = Color.red;
-				GUI.backgroundColor = Color.red;
-			}
-			string check = GUILayout.TextField(curState.radialText, GUILayout.Width(70));
-			GUI.contentColor = oldContentColor;
-			GUI.backgroundColor = oldBackgroundColor;
-			if (!curState.radialText.Equals(check, StringComparison.Ordinal)) {
-				curState.setRadial(check);
-			}
-			GUI.contentColor = contentColor;
-			GUIParts.drawPlusMinusButtons(() => {
-				curState.addRadial(options.increment);
-			}, () => {
-				curState.addRadial(-options.increment);
-			});
-			GUILayout.EndHorizontal();
-		}
-
-		private void drawManeuverPager() {
-			PatchedConicSolver solver = NodeTools.getSolver();
-
-			int idx = solver.maneuverNodes.IndexOf(curState.node);
-			int count = solver.maneuverNodes.Count;
-
-			GUILayout.BeginHorizontal();
-
-			GUI.enabled = count > 1;
-			if (GUILayout.Button("◀")) {
-				if (idx > 0) {
-					curState.nextNode = solver.maneuverNodes[idx - 1];
-				} else {
-					curState.nextNode = solver.maneuverNodes[count - 1];
-				}
-				curState.clearMemory();
-			}
-			GUI.enabled = true;
-			if (GUILayout.Button(Localizer.Format("#PN_Node") + " " + (idx + 1))) {
-				MapView.MapCamera.SetTarget(curState.node.scaledSpaceTarget);
-			}
-			GUIParts.drawButton(Localizer.Format("#PN_Del"), Color.red, () => {
-
-                curState.node.RemoveSelf();
-				//solver.RemoveManeuverNode(curState.node);
-				curState.clearMemory();
-			});
-			GUI.enabled = count > 1;
-			if (GUILayout.Button("▶")) {
-				if (idx < (count - 1)) {
-					curState.nextNode = solver.maneuverNodes[idx + 1];
-				} else {
-					curState.nextNode = solver.maneuverNodes[0];
-				}
-				curState.clearMemory();
-			}
-			GUI.enabled = true;
-			GUILayout.EndHorizontal();
-		}
-		
-		/// <summary>
-		/// Draws the Clock window.
-		/// </summary>
-		private void drawClockWindow() {
-			Color defaultColor = GUI.backgroundColor;
-			double timeNow = Planetarium.GetUniversalTime();
-			String timeUT = timeNow.ToString("F0");
-			String timeHuman = timeNow.convertUTtoHumanTime();
-
-			GUILayout.BeginVertical();
-
-			GUIParts.drawDoubleLabel(Localizer.Format("#PN_Time") + ":", 35, timeHuman, 150);
-			GUIParts.drawDoubleLabel(Localizer.Format("#PN_UT") + ":", 35, Math.Floor(timeNow).ToString("F0"), 150);
-
-			if(showTimeNext) {
-				double next = 0.0;
-				string labelText = "";
-				if(NodeTools.getSolver().maneuverNodes.Count > 0) {
-					// protection from index out of range errors.
-					// should probably handle this better.
-					next = timeNow - NodeTools.getSolver().maneuverNodes[0].UT;
-				}
-				if(next < 0) {
-					labelText = Localizer.Format("#PN_TMinus") + next.convertUTtoHumanDuration();
-
-                } else {
-					labelText = Localizer.Format("#PN_TPlus")  + next.convertUTtoHumanDuration();
-
+        private void drawProgradeControls(Color contentColor)
+        {
+            Color oldContentColor = GUI.contentColor;
+            Color oldBackgroundColor = GUI.backgroundColor;
+            // Prograde controls
+            using (new GUILayout.HorizontalScope())
+            {
+                GUI.contentColor = PROGRADE_COLOR;
+                GUILayout.Label(Localizer.Format("#PN_Prograde") + ":", GUILayout.Width(100));
+                if (!curState.progradeParsed)
+                {
+                    GUI.contentColor = Color.red;
+                    GUI.backgroundColor = Color.red;
                 }
-				GUIParts.drawDoubleLabel(Localizer.Format("#PN_Next") + ":", 35, labelText, 150);
-			}
+                string check = GUILayout.TextField(curState.progradeText, GUILayout.Width(70));
+                GUI.contentColor = oldContentColor;
+                GUI.backgroundColor = oldBackgroundColor;
+                if (!curState.progradeText.Equals(check, StringComparison.Ordinal))
+                {
+                    curState.setPrograde(check);
+                }
+                GUIParts.drawPlusMinusButtons(() =>
+                {
+                    curState.addPrograde(options.increment);
+                }, () =>
+                {
+                    curState.addPrograde(-options.increment);
+                });
+            }
+        }
 
-			GUILayout.EndVertical();
-			GUI.DragWindow();
-		}
+        private void drawNormalControls(Color contentColor)
+        {
+            Color oldContentColor = GUI.contentColor;
+            Color oldBackgroundColor = GUI.backgroundColor;
+            // Normal controls
+            using (new GUILayout.HorizontalScope())
+            {
+                GUI.contentColor = NORMAL_COLOR;
+                GUILayout.Label(Localizer.Format("#PN_Normal") + ":", GUILayout.Width(100));
+                if (!curState.normalParsed)
+                {
+                    GUI.contentColor = Color.red;
+                    GUI.backgroundColor = Color.red;
+                }
+                string check = GUILayout.TextField(curState.normalText, GUILayout.Width(70));
+                GUI.contentColor = oldContentColor;
+                GUI.backgroundColor = oldBackgroundColor;
+                if (!curState.normalText.Equals(check, StringComparison.Ordinal))
+                {
+                    curState.setNormal(check);
+                }
+                GUI.contentColor = contentColor;
+                GUIParts.drawPlusMinusButtons(() =>
+                {
+                    curState.addNormal(options.increment);
+                }, () =>
+                {
+                    curState.addNormal(-options.increment);
+                });
+            }
+        }
 
-		/// <summary>
-		/// Draws the Conics window.
-		/// </summary>
-		private void drawConicsWindow() {
-			GUILayout.BeginVertical();
-			GUIParts.drawConicsControls(options);
-			GUILayout.EndVertical();
-			GUI.DragWindow();
-		}
+        private void drawRadialControls(Color contentColor)
+        {
+            Color oldContentColor = GUI.contentColor;
+            Color oldBackgroundColor = GUI.backgroundColor;
+            // radial controls
+            using (new GUILayout.HorizontalScope())
+            {
+                GUI.contentColor = RADIAL_COLOR;
+                GUILayout.Label(Localizer.Format("#PN_Radial") + ":", GUILayout.Width(100));
+                if (!curState.radialParsed)
+                {
+                    GUI.contentColor = Color.red;
+                    GUI.backgroundColor = Color.red;
+                }
+                string check = GUILayout.TextField(curState.radialText, GUILayout.Width(70));
+                GUI.contentColor = oldContentColor;
+                GUI.backgroundColor = oldBackgroundColor;
+                if (!curState.radialText.Equals(check, StringComparison.Ordinal))
+                {
+                    curState.setRadial(check);
+                }
+                GUI.contentColor = contentColor;
+                GUIParts.drawPlusMinusButtons(() =>
+                {
+                    curState.addRadial(options.increment);
+                }, () =>
+                {
+                    curState.addRadial(-options.increment);
+                });
+            }
+        }
 
-		/// <summary>
-		/// Draws the Options window.
-		/// </summary>
-		private void drawOptionsWindow() {
-			Color defaultColor = GUI.backgroundColor;
+        private void drawManeuverPager()
+        {
+            PatchedConicSolver solver = NodeTools.getSolver();
 
-			// Close button
-			if(GUI.Button(new Rect(options.optionsWindowPos.width - 24, 2, 22, 18), "X")) {
-				showOptions = false;
-			}
+            int idx = solver.maneuverNodes.IndexOf(curState.node);
+            int count = solver.maneuverNodes.Count;
 
-			GUILayout.BeginVertical();
+            using (new GUILayout.HorizontalScope())
+            {
 
-			// use a temp variable so we can check whether the main window needs resizing.
-			bool temp;
+                GUI.enabled = count > 1;
+                if (GUILayout.Button("◀"))
+                {
+                    if (idx > 0)
+                    {
+                        curState.nextNode = solver.maneuverNodes[idx - 1];
+                    }
+                    else
+                    {
+                        curState.nextNode = solver.maneuverNodes[count - 1];
+                    }
+                    curState.clearMemory();
+                }
+                GUI.enabled = true;
+                if (GUILayout.Button(Localizer.Format("#PN_Node") + " " + (idx + 1)))
+                {
+                    MapView.MapCamera.SetTarget(curState.node.scaledSpaceTarget);
+                }
+                GUIParts.drawButton(new GUIContent(Localizer.Format("#PN_Del"), Localizer.Format("#PN_DeleteNode")), Color.red, () =>
+                {
 
-			temp = GUILayout.Toggle(options.showConics, Localizer.Format("#PN_ShowConicsControls"));
+                    curState.node.RemoveSelf();
+                    //solver.RemoveManeuverNode(curState.node);
+                    curState.clearMemory();
+                });
+                GUI.enabled = count > 1;
+                if (GUILayout.Button("▶"))
+                {
+                    if (idx < (count - 1))
+                    {
+                        curState.nextNode = solver.maneuverNodes[idx + 1];
+                    }
+                    else
+                    {
+                        curState.nextNode = solver.maneuverNodes[0];
+                    }
+                    curState.clearMemory();
+                }
+                GUI.enabled = true;
+            }
+        }
 
-            if (temp != options.showConics) {
-				options.showConics = temp;
-				curState.resizeMainWindow = true;
-			}
+        /// <summary>
+        /// Draws the Clock window.
+        /// </summary>
+        private void drawClockWindow()
+        {
+            Color defaultColor = GUI.backgroundColor;
+            double timeNow = Planetarium.GetUniversalTime();
+            String timeUT = timeNow.ToString("F0");
+            String timeHuman = timeNow.convertUTtoHumanTime();
 
-			options.showConicsAlways = GUILayout.Toggle(options.showConicsAlways, Localizer.Format("#PN_ShowConicsWindow"));
+            using (new GUILayout.VerticalScope())
+            {
 
-            options.showClock = GUILayout.Toggle(options.showClock,Localizer.Format("#PN_ShowClockWindow"));
+                GUIParts.drawDoubleLabel(Localizer.Format("#PN_Time") + ":", 35, timeHuman, 150);
+                GUIParts.drawDoubleLabel(Localizer.Format("#PN_UT") + ":", 35, Math.Floor(timeNow).ToString("F0"), 150);
 
-            temp = GUILayout.Toggle(options.showManeuverPager, Localizer.Format("#PN_ShowManeuverPager"));
+                if (showTimeNext)
+                {
+                    double next = 0.0;
+                    string labelText = "";
+                    if (NodeTools.getSolver().maneuverNodes.Count > 0)
+                    {
+                        // protection from index out of range errors.
+                        // should probably handle this better.
+                        next = timeNow - NodeTools.getSolver().maneuverNodes[0].UT;
+                    }
+                    if (next < 0)
+                    {
+                        labelText = Localizer.Format("#PN_TMinus") + next.convertUTtoHumanDuration();
 
-            if (temp != options.showManeuverPager) {
-				options.showManeuverPager = temp;
-				curState.resizeMainWindow = true;
-			}
-			temp = GUILayout.Toggle(options.showUTControls, Localizer.Format("#PN_ShowAdditionalUTControls"));
+                    }
+                    else
+                    {
+                        labelText = Localizer.Format("#PN_TPlus") + next.convertUTtoHumanDuration();
 
-            if (temp != options.showUTControls) {
-				options.showUTControls = temp;
-				curState.resizeMainWindow = true;
-			}
-			options.largeUTIncrement = GUILayout.Toggle(options.largeUTIncrement, Localizer.Format("#PN_UseX10UTIncrement"));
+                    }
+                    GUIParts.drawDoubleLabel(Localizer.Format("#PN_Next") + ":", 35, labelText, 150);
+                }
 
-            temp = GUILayout.Toggle(options.showEAngle, Localizer.Format("#PN_ShowEjectionAngle"));
+            }
+            GUI.DragWindow();
+        }
 
-            if (temp != options.showEAngle) {
-				options.showEAngle = temp;
-				curState.resizeMainWindow = true;
-			}
-			temp = GUILayout.Toggle(options.showOrbitInfo, Localizer.Format("#PN_ShowOrbitInformation"));
+        /// <summary>
+        /// Draws the Conics window.
+        /// </summary>
+        private void drawConicsWindow()
+        {
+            using (new GUILayout.VerticalScope())
+            {
+                GUIParts.drawConicsControls(options);
+            }
+            GUI.DragWindow();
+        }
 
-            if (temp != options.showOrbitInfo) {
-				options.showOrbitInfo = temp;
-				curState.resizeMainWindow = true;
-			}
-			temp = GUILayout.Toggle(options.intuitiveManeuverGizmos, Localizer.Format("#PN_UseIntuitiveNode"));
+        /// <summary>
+        /// Draws the Options window.
+        /// </summary>
+        private void drawOptionsWindow()
+        {
+            Color defaultColor = GUI.backgroundColor;
 
-            if (temp != options.intuitiveManeuverGizmos) {
-				options.intuitiveManeuverGizmos = temp;
-				curState.resizeMainWindow = true;
-			}
+            // Close button
+            if (GUI.Button(new Rect(options.optionsWindowPos.width - 24, 2, 22, 18), "X"))
+            {
+                showOptions = false;
+                options.SaveSettings();
+            }
+
+            using (new GUILayout.VerticalScope())
+            {
+
+                // use a temp variable so we can check whether the main window needs resizing.
+                bool temp;
+
+                temp = GUILayout.Toggle(options.showConics, Localizer.Format("#PN_ShowConicsControls"));
+
+                if (temp != options.showConics)
+                {
+                    options.showConics = temp;
+                    curState.resizeMainWindow = true;
+                }
+
+                options.showAngleInput = GUILayout.Toggle(options.showAngleInput, Localizer.Format("#PN_ShowAngleInput"));
+                options.showConicsAlways = GUILayout.Toggle(options.showConicsAlways, Localizer.Format("#PN_ShowConicsWindow"));
+
+                options.showClock = GUILayout.Toggle(options.showClock, Localizer.Format("#PN_ShowClockWindow"));
+
+                temp = GUILayout.Toggle(options.showManeuverPager, Localizer.Format("#PN_ShowManeuverPager"));
+
+                if (temp != options.showManeuverPager)
+                {
+                    options.showManeuverPager = temp;
+                    curState.resizeMainWindow = true;
+                }
+                temp = GUILayout.Toggle(options.showUTControls, Localizer.Format("#PN_ShowAdditionalUTControls"));
+
+                if (temp != options.showUTControls)
+                {
+                    options.showUTControls = temp;
+                    curState.resizeMainWindow = true;
+                }
+                options.largeUTIncrement = GUILayout.Toggle(options.largeUTIncrement, Localizer.Format("#PN_UseX10UTIncrement"));
+
+                temp = GUILayout.Toggle(options.showEAngle, Localizer.Format("#PN_ShowEjectionAngle"));
+
+                if (temp != options.showEAngle)
+                {
+                    options.showEAngle = temp;
+                    curState.resizeMainWindow = true;
+                }
+                temp = GUILayout.Toggle(options.showOrbitInfo, Localizer.Format("#PN_ShowOrbitInformation"));
+
+                if (temp != options.showOrbitInfo)
+                {
+                    options.showOrbitInfo = temp;
+                    curState.resizeMainWindow = true;
+                }
+                temp = GUILayout.Toggle(options.intuitiveManeuverGizmos, Localizer.Format("#PN_UseIntuitiveNode"));
+
+                if (temp != options.intuitiveManeuverGizmos)
+                {
+                    options.intuitiveManeuverGizmos = temp;
+                    curState.resizeMainWindow = true;
+                }
+
+                options.showTooltips = GUILayout.Toggle(options.showTooltips, Localizer.Format("#PN_ShowTooltips"));
 #if NODE_CLEANUP
 			options.removeUsedNodes = GUILayout.Toggle(options.removeUsedNodes, Localizer.Format("#PN_RemoveUsedNodes"));
             //TODO: Add threshold controls for removing used nodes
 #endif
 
-            GUILayout.EndVertical();
-			GUI.DragWindow();
-		}
+            }
+            GUI.DragWindow();
+        }
 
-		/// <summary>
-		/// Draws the Keymapper window.
-		/// </summary>
-		private void drawKeymapperWindow() {
-			Color defaultColor = GUI.backgroundColor;
+        /// <summary>
+        /// Draws the Keymapper window.
+        /// </summary>
+        private void drawKeymapperWindow()
+        {
+            Color defaultColor = GUI.backgroundColor;
 
-			// Close button
-			if(GUI.Button(new Rect(options.keymapperWindowPos.width - 24, 2, 22, 18), "X")) {
-				showKeymapper = false;
-			}
+            // Close button
+            if (GUI.Button(new Rect(options.keymapperWindowPos.width - 24, 2, 22, 18), "X"))
+            {
+                showKeymapper = false;
+            }
 
-			GUILayout.BeginVertical();
+            using (new GUILayout.VerticalScope())
+            {
 
-			// Set window control
-			drawKeyControls(Localizer.Format("#PN_HideShowWindow"), Key.HIDEWINDOW, options.hideWindow);
+                // Set window control
+                drawKeyControls(Localizer.Format("#PN_HideShowWindow"), Key.HIDEWINDOW, options.hideWindow);
 
-            // Set add node widget button
-            drawKeyControls(Localizer.Format("#PN_OpenNodeGizmo"), Key.ADDWIDGET, options.addWidget);
+                // Set add node widget button
+                drawKeyControls(Localizer.Format("#PN_OpenNodeGizmo"), Key.ADDWIDGET, options.addWidget);
 
-            // Set prograde controls
-            drawKeyControls(Localizer.Format("#PN_IncrementPrograde"), Key.PROGINC, options.progInc);
+                // Set prograde controls
+                drawKeyControls(Localizer.Format("#PN_IncrementPrograde"), Key.PROGINC, options.progInc);
 
-            drawKeyControls(Localizer.Format("#PN_DecrementPrograde"), Key.PROGDEC, options.progDec);
+                drawKeyControls(Localizer.Format("#PN_DecrementPrograde"), Key.PROGDEC, options.progDec);
 
-            // set normal controls
-            drawKeyControls(Localizer.Format("#PN_IncrementNormal"), Key.NORMINC, options.normInc);
+                // set normal controls
+                drawKeyControls(Localizer.Format("#PN_IncrementNormal"), Key.NORMINC, options.normInc);
 
-            drawKeyControls(Localizer.Format("#PN_DecrementNormal"), Key.NORMDEC, options.normDec);
+                drawKeyControls(Localizer.Format("#PN_DecrementNormal"), Key.NORMDEC, options.normDec);
 
-            // set radial controls
-            drawKeyControls(Localizer.Format("#PN_IncrementRadial"), Key.RADIINC, options.radiInc);
+                // set radial controls
+                drawKeyControls(Localizer.Format("#PN_IncrementRadial"), Key.RADIINC, options.radiInc);
 
-            drawKeyControls(Localizer.Format("#PN_DecrementRadial"), Key.RADIDEC, options.radiDec);
+                drawKeyControls(Localizer.Format("#PN_DecrementRadial"), Key.RADIDEC, options.radiDec);
 
-            // set time controls
-            drawKeyControls(Localizer.Format("#PN_IncrementTime"), Key.TIMEINC, options.timeInc);
+                // set time controls
+                drawKeyControls(Localizer.Format("#PN_IncrementTime"), Key.TIMEINC, options.timeInc);
 
-            drawKeyControls(Localizer.Format("#PN_DecrementTime"), Key.TIMEDEC, options.timeDec);
+                drawKeyControls(Localizer.Format("#PN_DecrementTime"), Key.TIMEDEC, options.timeDec);
 
-            // set paging controls
-            drawKeyControls(Localizer.Format("#PN_PageIncrement"), Key.PAGEINC, options.pageIncrement);
+                // set paging controls
+                drawKeyControls(Localizer.Format("#PN_PageIncrement"), Key.PAGEINC, options.pageIncrement);
 
-            drawKeyControls(Localizer.Format("#PN_PageConics"), Key.PAGECON, options.pageConics);
+                drawKeyControls(Localizer.Format("#PN_PageConics"), Key.PAGECON, options.pageConics);
+
+            }
+            GUI.DragWindow();
+        }
+
+        private void drawKeyControls(string title, Key key, KeyCode currentKeyCode)
+        {
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label(title + ": " + currentKeyCode.ToString(), GUILayout.Width(200));
+                GUIParts.drawButton(Localizer.Format("#PN_Set"), GUI.backgroundColor, () =>
+                {
+
+                    doWaitForKey(Localizer.Format("#PN_PressKeyToBind") + " " + title.ToLower() + "...", key);
+                });
+            }
+        }
+
+        private void drawTripWindow()
+        {
+            PatchedConicSolver solver = NodeTools.getSolver();
+
+            using (new GUILayout.VerticalScope())
+            {
+                if (solver.maneuverNodes.Count < 1)
+                {
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label(Localizer.Format("#PN_NoNodeToShow"), GUILayout.Width(200));
+                    }
+                }
+                else
+                {
+                    double total = 0.0;
+                    double timeNow = Planetarium.GetUniversalTime();
+
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label("", GUILayout.Width(60));
+                        GUILayout.Label(Localizer.Format("#PN_DV"), GUILayout.Width(90));
+
+                        GUILayout.Label(Localizer.Format("#PN_TimeUntil"), GUILayout.Width(200));
+
+                        GUILayout.Label("", GUILayout.Width(120));
+                    }
+
+                    foreach (ManeuverNode curNode in solver.maneuverNodes)
+                    {
+                        int idx = solver.maneuverNodes.IndexOf(curNode);
+                        double timeDiff = curNode.UT - timeNow;
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            GUILayout.Label(Localizer.Format("#PN_Node") + " " + (idx + 1), GUILayout.Width(60));
+                            GUILayout.Label(curNode.DeltaV.magnitude.ToString("F2") + " " + Localizer.Format("#PN_mPers"), GUILayout.Width(90));
+
+                            GUILayout.Label(timeDiff.convertUTtoHumanDuration(), GUILayout.Width(200));
+                            if (idx > 0)
+                            {
+                                GUIParts.drawButton("▲ " + Localizer.Format("#PN_Merge"), Color.white, () =>
+                                {
+                                    // schedule for next layout pass to not mess up maneuver nodes while iterating over them
+                                    scheduledForLayout.Add(() =>
+                                    {
+                                        solver.maneuverNodes[idx].mergeNodeDown();
+                                    });
+                                });
+                            }
+                        }
+                        total += curNode.DeltaV.magnitude;
+                    }
+
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label(Localizer.Format("#PN_Total"), GUILayout.Width(60));
+
+                        GUILayout.Label(total.ToString("F2") + " " + Localizer.Format("#PN_mPers"), GUILayout.Width(90));
+                        GUILayout.Label("", GUILayout.Width(200));
+                    }
+                }             
+            }
+            GUI.DragWindow();
+        }
+
+        /// <summary>
+        /// Returns whether the Node Editor can be shown based on a number of global factors.
+        /// </summary>
+        /// <value><c>true</c> if the Node Editor can be shown; otherwise, <c>false</c>.</value>
+        private bool canShowNodeEditor
+        {
+            get
+            {
+                return (FlightGlobals.ActiveVessel != null) && MapView.MapIsEnabled && (NodeTools.getSolver() != null) && (NodeTools.getSolver().maneuverNodes.Count > 0);
+            }
+        }
+
+        /// <summary>
+        /// Returns whether the Conics Window can be shown based on a number of global factors.
+        /// </summary>
+        /// <value><c>true</c> if the Conics Window can be shown; otherwise, <c>false</c>.</value>
+        private bool canShowConicsWindow
+        {
+            get
+            {
+                return (FlightGlobals.ActiveVessel != null) && MapView.MapIsEnabled && options.showConicsAlways;
+            }
+        }
+
+        /// <summary>
+        /// Returns whether the Clock Window can be shown based on a number of global factors.
+        /// </summary>
+        /// <value><c>true</c> if the Clock Window can be shown; otherwise, <c>false</c>.</value>
+        private bool canShowClock
+        {
+            get
+            {
+                return (FlightGlobals.ActiveVessel != null) && options.showClock;
+            }
+        }
 
 
-            GUILayout.EndVertical();
-			GUI.DragWindow();
-		}
+        private void doWaitForKey(String msg, Key key)
+        {
+            ScreenMessages.PostScreenMessage(msg, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+            waitForKey = true;
+            currentWaitKey = key;
+            keyWaitTime = Planetarium.GetUniversalTime();
+        }
 
-		private void drawKeyControls(string title, Key key, KeyCode currentKeyCode) {
-			GUILayout.BeginHorizontal();
-			GUILayout.Label(title + ": " + currentKeyCode.ToString(), GUILayout.Width(200));
-			GUIParts.drawButton(Localizer.Format("#PN_Set"), GUI.backgroundColor, () => {
+        /// <summary>
+        /// Processes keyboard input.
+        /// </summary>
+        private void processKeyInput()
+        {
+            if (!Input.anyKeyDown)
+            {
+                return;
+            }
 
-                doWaitForKey(Localizer.Format("#PN_PressKeyToBind") + " " + title.ToLower() + "...", key);
-			});
-			GUILayout.EndHorizontal();
-		}
+            // Fix for a bug in Linux where typing would still control game elements even if
+            // a textbox was focused.
+            if (GUIUtility.keyboardControl != 0)
+            {
+                return;
+            }
 
-		private void drawTripWindow() {
-			PatchedConicSolver solver = NodeTools.getSolver();
+            // process any key input for settings
+            if (waitForKey)
+            {
+                KeyCode key = NodeTools.fetchKey();
+                // if the time is up or we have no key to process, reset.
+                if (((keyWaitTime + 5.0) < Planetarium.GetUniversalTime()) || key == KeyCode.None)
+                {
+                    currentWaitKey = Key.NONE;
+                    waitForKey = false;
+                    return;
+                }
 
-			GUILayout.BeginVertical();
-			if(solver.maneuverNodes.Count < 1) {
-				GUILayout.BeginHorizontal();
-				GUILayout.Label(Localizer.Format("#PN_NoNodeToShow"), GUILayout.Width(200));
+                // which key are we waiting for?
+                switch (currentWaitKey)
+                {
+                    case Key.PROGINC:
+                        options.progInc = key;
+                        break;
+                    case Key.PROGDEC:
+                        options.progDec = key;
+                        break;
+                    case Key.NORMINC:
+                        options.normInc = key;
+                        break;
+                    case Key.NORMDEC:
+                        options.normDec = key;
+                        break;
+                    case Key.RADIINC:
+                        options.radiInc = key;
+                        break;
+                    case Key.RADIDEC:
+                        options.radiDec = key;
+                        break;
+                    case Key.TIMEINC:
+                        options.timeInc = key;
+                        break;
+                    case Key.TIMEDEC:
+                        options.timeDec = key;
+                        break;
+                    case Key.PAGEINC:
+                        options.pageIncrement = key;
+                        break;
+                    case Key.PAGECON:
+                        options.pageConics = key;
+                        break;
+                    case Key.HIDEWINDOW:
+                        options.hideWindow = key;
+                        break;
+                    case Key.ADDWIDGET:
+                        options.addWidget = key;
+                        break;
+                }
+                currentWaitKey = Key.NONE;
+                waitForKey = false;
+                return;
+            }
 
-                GUILayout.EndHorizontal();
-			} else {
-				double total = 0.0;
-				double timeNow = Planetarium.GetUniversalTime();
+            // process normal keyboard input
+            // change increment
+            if (Input.GetKeyDown(options.pageIncrement))
+            {
+                if (Event.current.alt)
+                {
+                    options.downIncrement();
+                }
+                else
+                {
+                    options.upIncrement();
+                }
+            }
+            // prograde increment
+            if (Input.GetKeyDown(options.progInc))
+            {
+                curState.addPrograde(options.increment);
+            }
+            // prograde decrement
+            if (Input.GetKeyDown(options.progDec))
+            {
+                curState.addPrograde(-options.increment);
+            }
+            // normal increment
+            if (Input.GetKeyDown(options.normInc))
+            {
+                curState.addNormal(options.increment);
+            }
+            // normal decrement
+            if (Input.GetKeyDown(options.normDec))
+            {
+                curState.addNormal(-options.increment);
+            }
+            // radial increment
+            if (Input.GetKeyDown(options.radiInc))
+            {
+                curState.addRadial(options.increment);
+            }
+            // radial decrement
+            if (Input.GetKeyDown(options.radiDec))
+            {
+                curState.addRadial(-options.increment);
+            }
+            // UT increment
+            if (Input.GetKeyDown(options.timeInc))
+            {
+                curState.addUT(options.increment * (options.largeUTIncrement ? 10.0 : 1.0));
+            }
+            // UT decrement
+            if (Input.GetKeyDown(options.timeDec))
+            {
+                curState.addUT(-options.increment * (options.largeUTIncrement ? 10.0 : 1.0));
+            }
+            // Page Conics
+            if (Input.GetKeyDown(options.pageConics))
+            {
+                options.pageConicsMode();
+            }
+            // hide/show window
+            if (Input.GetKeyDown(options.hideWindow))
+            {
+                shown = !shown;
+            }
+            // open node gizmo
+            if (Input.GetKeyDown(options.addWidget))
+            {
+                curState.node.CreateNodeGizmo();
+            }
+        }
 
-				GUILayout.BeginHorizontal();
-				GUILayout.Label("", GUILayout.Width(60));
-				GUILayout.Label(Localizer.Format("#PN_DV"), GUILayout.Width(90));
+        /// <summary>
+        /// Load any saved configuration from file.
+        /// </summary>
+        private void loadConfig()
+        {
+            PluginConfiguration config = KSP.IO.PluginConfiguration.CreateForType<PreciseNode>(null);
+            config.load();
 
-                GUILayout.Label(Localizer.Format("#PN_TimeUntil"), GUILayout.Width(200));
-
-                GUILayout.Label("", GUILayout.Width(120));
-				GUILayout.EndHorizontal();
-
-				foreach(ManeuverNode curNode in solver.maneuverNodes) {
-					int idx = solver.maneuverNodes.IndexOf(curNode);
-					double timeDiff = curNode.UT - timeNow;
-					GUILayout.BeginHorizontal();
-					GUILayout.Label(Localizer.Format("#PN_Node") + " " + (idx + 1), GUILayout.Width(60));
-					GUILayout.Label(curNode.DeltaV.magnitude.ToString("F2") + " " + Localizer.Format("#PN_mPers"), GUILayout.Width(90));
-
-                    GUILayout.Label(timeDiff.convertUTtoHumanDuration(), GUILayout.Width(200));
-					if(idx > 0) {
-						GUIParts.drawButton("▲ " + Localizer.Format("#PN_Merge"), Color.white, () => {
-                            // schedule for next layout pass to not mess up maneuver nodes while iterating over them
-                            scheduledForLayout.Add(() => {
-								solver.maneuverNodes[idx].mergeNodeDown();
-							});
-						});
-					}
-					GUILayout.EndHorizontal();
-					total += curNode.DeltaV.magnitude;
-				}
-
-				GUILayout.BeginHorizontal();
-				GUILayout.Label(Localizer.Format("#PN_Total"), GUILayout.Width(60));
-
-                GUILayout.Label(total.ToString("F2") + " " + Localizer.Format("#PN_mPers"), GUILayout.Width(90));
-				GUILayout.Label("", GUILayout.Width(200));
-				GUILayout.EndHorizontal();
-			}
-
-			GUILayout.EndVertical();
-			GUI.DragWindow();
-		}
-
-		/// <summary>
-		/// Returns whether the Node Editor can be shown based on a number of global factors.
-		/// </summary>
-		/// <value><c>true</c> if the Node Editor can be shown; otherwise, <c>false</c>.</value>
-		private bool canShowNodeEditor {
-			get {
-				return (FlightGlobals.ActiveVessel != null) && MapView.MapIsEnabled && (NodeTools.getSolver() != null) && (NodeTools.getSolver().maneuverNodes.Count > 0);
-			}
-		}
-
-		/// <summary>
-		/// Returns whether the Conics Window can be shown based on a number of global factors.
-		/// </summary>
-		/// <value><c>true</c> if the Conics Window can be shown; otherwise, <c>false</c>.</value>
-		private bool canShowConicsWindow {
-			get {
-				return (FlightGlobals.ActiveVessel != null) && MapView.MapIsEnabled && options.showConicsAlways;
-			}
-		}
-
-		/// <summary>
-		/// Returns whether the Clock Window can be shown based on a number of global factors.
-		/// </summary>
-		/// <value><c>true</c> if the Clock Window can be shown; otherwise, <c>false</c>.</value>
-		private bool canShowClock {
-			get {
-				return (FlightGlobals.ActiveVessel != null) && options.showClock;
-			}
-		}
-
-
-		private void doWaitForKey(String msg, Key key) {
-			ScreenMessages.PostScreenMessage(msg, 5.0f, ScreenMessageStyle.UPPER_CENTER);
-			waitForKey = true;
-			currentWaitKey = key;
-			keyWaitTime = Planetarium.GetUniversalTime();
-		}
-
-		/// <summary>
-		/// Processes keyboard input.
-		/// </summary>
-		private void processKeyInput() {
-			if(!Input.anyKeyDown) {
-				return;
-			}
-
-			// Fix for a bug in Linux where typing would still control game elements even if
-			// a textbox was focused.
-			if(GUIUtility.keyboardControl != 0) {
-				return;
-			}
-
-			// process any key input for settings
-			if(waitForKey) {
-				KeyCode key = NodeTools.fetchKey();
-				// if the time is up or we have no key to process, reset.
-				if(((keyWaitTime + 5.0) < Planetarium.GetUniversalTime()) || key == KeyCode.None) {
-					currentWaitKey = Key.NONE;
-					waitForKey = false;
-					return;
-				}
-
-				// which key are we waiting for?
-				switch(currentWaitKey) {
-					case Key.PROGINC:
-						options.progInc = key;
-						break;
-					case Key.PROGDEC:
-						options.progDec = key;
-						break;
-					case Key.NORMINC:
-						options.normInc = key;
-						break;
-					case Key.NORMDEC:
-						options.normDec = key;
-						break;
-					case Key.RADIINC:
-						options.radiInc = key;
-						break;
-					case Key.RADIDEC:
-						options.radiDec = key;
-						break;
-					case Key.TIMEINC:
-						options.timeInc = key;
-						break;
-					case Key.TIMEDEC:
-						options.timeDec = key;
-						break;
-					case Key.PAGEINC:
-						options.pageIncrement = key;
-						break;
-					case Key.PAGECON:
-						options.pageConics = key;
-						break;
-					case Key.HIDEWINDOW:
-						options.hideWindow = key;
-						break;
-					case Key.ADDWIDGET:
-						options.addWidget = key;
-						break;
-				}
-				currentWaitKey = Key.NONE;
-				waitForKey = false;
-				return;
-			}
-
-			// process normal keyboard input
-			// change increment
-			if(Input.GetKeyDown(options.pageIncrement)) {
-				if(Event.current.alt) {
-					options.downIncrement();
-				} else {
-					options.upIncrement();
-				}
-			}
-			// prograde increment
-			if(Input.GetKeyDown(options.progInc)) {
-				curState.addPrograde(options.increment);
-			}
-			// prograde decrement
-			if(Input.GetKeyDown(options.progDec)) {
-				curState.addPrograde(-options.increment);
-			}
-			// normal increment
-			if(Input.GetKeyDown(options.normInc)) {
-				curState.addNormal(options.increment);
-			}
-			// normal decrement
-			if(Input.GetKeyDown(options.normDec)) {
-				curState.addNormal(-options.increment);
-			}
-			// radial increment
-			if(Input.GetKeyDown(options.radiInc)) {
-				curState.addRadial(options.increment);
-			}
-			// radial decrement
-			if(Input.GetKeyDown(options.radiDec)) {
-				curState.addRadial(-options.increment);
-			}
-			// UT increment
-			if(Input.GetKeyDown(options.timeInc)) {
-				curState.addUT(options.increment * (options.largeUTIncrement ? 10.0 : 1.0));
-			}
-			// UT decrement
-			if(Input.GetKeyDown(options.timeDec)) {
-				curState.addUT(-options.increment * (options.largeUTIncrement ? 10.0 : 1.0));
-			}
-			// Page Conics
-			if(Input.GetKeyDown(options.pageConics)) {
-				options.pageConicsMode();
-			}
-			// hide/show window
-			if(Input.GetKeyDown(options.hideWindow)) {
-				shown = !shown;
-			}
-			// open node gizmo
-			if(Input.GetKeyDown(options.addWidget)) {
-				curState.node.CreateNodeGizmo();
-			}
-		}
-
-		/// <summary>
-		/// Load any saved configuration from file.
-		/// </summary>
-		private void loadConfig() {
-			Debug.Log("Loading PreciseNode settings.");
-			PluginConfiguration config = KSP.IO.PluginConfiguration.CreateForType<PreciseNode>(null);
-			config.load();
-
-			try {
-				options.conicsMode = config.GetValue<int>("conicsMode", 3);
-				options.mainWindowPos.x = config.GetValue<int>("mainWindowX", Screen.width / 10);
-				options.mainWindowPos.y = config.GetValue<int>("mainWindowY", 20);
-				options.optionsWindowPos.x = config.GetValue<int>("optWindowX", Screen.width / 3);
-				options.optionsWindowPos.y = config.GetValue<int>("optWindowY", 20);
-				options.keymapperWindowPos.x = config.GetValue<int>("keyWindowX", Screen.width / 5);
-				options.keymapperWindowPos.y = config.GetValue<int>("keyWindowY", 20);
-				options.clockWindowPos.x = config.GetValue<int>("clockWindowX", Screen.width / 3);
-				options.clockWindowPos.y = config.GetValue<int>("clockWindowY", Screen.height / 2);
-				options.conicsWindowPos.x = config.GetValue<int>("conicsWindowX", Screen.width / 5);
-				options.conicsWindowPos.y = config.GetValue<int>("conicsWindowY", Screen.height / 2);
-				options.tripWindowPos.x = config.GetValue<int>("tripWindowX", Screen.width / 5);
-				options.tripWindowPos.y = config.GetValue<int>("tripWindowY", Screen.height / 5);
-				options.showClock = config.GetValue<bool>("showClock", false);
-				options.showEAngle = config.GetValue<bool>("showEAngle", true);
-				options.showConics = config.GetValue<bool>("showConics", true);
-				options.showConicsAlways = config.GetValue<bool>("showConicsAlways", false);
-				options.showOrbitInfo = config.GetValue<bool>("showOrbitInfo", false);
-				options.showUTControls = config.GetValue<bool>("showUTControls", false);
-				options.showManeuverPager = config.GetValue<bool>("showManeuverPager", true);
-				options.intuitiveManeuverGizmos = config.GetValue<bool>("intuitiveManeuverGizmos", false);
+            try
+            {
+                options.conicsMode = config.GetValue<int>("conicsMode", 3);
+                options.mainWindowPos.x = config.GetValue<int>("mainWindowX", Screen.width / 10);
+                options.mainWindowPos.y = config.GetValue<int>("mainWindowY", 20);
+                options.optionsWindowPos.x = config.GetValue<int>("optWindowX", Screen.width / 3);
+                options.optionsWindowPos.y = config.GetValue<int>("optWindowY", 20);
+                options.keymapperWindowPos.x = config.GetValue<int>("keyWindowX", Screen.width / 5);
+                options.keymapperWindowPos.y = config.GetValue<int>("keyWindowY", 20);
+                options.clockWindowPos.x = config.GetValue<int>("clockWindowX", Screen.width / 3);
+                options.clockWindowPos.y = config.GetValue<int>("clockWindowY", Screen.height / 2);
+                options.conicsWindowPos.x = config.GetValue<int>("conicsWindowX", Screen.width / 5);
+                options.conicsWindowPos.y = config.GetValue<int>("conicsWindowY", Screen.height / 2);
+                options.tripWindowPos.x = config.GetValue<int>("tripWindowX", Screen.width / 5);
+                options.tripWindowPos.y = config.GetValue<int>("tripWindowY", Screen.height / 5);
+                options.showClock = config.GetValue<bool>("showClock", false);
+                options.showEAngle = config.GetValue<bool>("showEAngle", true);
+                options.showConics = config.GetValue<bool>("showConics", true);
+                options.showConicsAlways = config.GetValue<bool>("showConicsAlways", false);
+                options.showOrbitInfo = config.GetValue<bool>("showOrbitInfo", false);
+                options.showUTControls = config.GetValue<bool>("showUTControls", false);
+                options.showManeuverPager = config.GetValue<bool>("showManeuverPager", true);
+                options.intuitiveManeuverGizmos = config.GetValue<bool>("intuitiveManeuverGizmos", false);
 #if NODE_CLEANUP
 				options.removeUsedNodes = config.GetValue<bool>("removeUsedNodes", false);
 				options.usedNodeThreshold = config.GetValue<double>("usedNodeThreshold", 0.5);
 #endif
-				options.largeUTIncrement = config.GetValue<bool>("largeUTIncrement", false);
-				options.angleRefIndex = config.GetValue<int>("angleRefIndex", 0);
+                options.largeUTIncrement = config.GetValue<bool>("largeUTIncrement", false);
+                options.angleRefIndex = config.GetValue<int>("angleRefIndex", 0);
 
-				string temp = config.GetValue<String>("progInc", "Keypad8");
-				options.progInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("progDec", "Keypad5");
-				options.progDec = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("normInc", "Keypad9");
-				options.normInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("normDec", "Keypad7");
-				options.normDec = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("radiInc", "Keypad6");
-				options.radiInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("radiDec", "Keypad4");
-				options.radiDec = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("timeInc", "Keypad3");
-				options.timeInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("timeDec", "Keypad1");
-				options.timeDec = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("pageIncrement", "Keypad0");
-				options.pageIncrement = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("pageConics", "KeypadEnter");
-				options.pageConics = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("hideWindow", "P");
-				options.hideWindow = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-				temp = config.GetValue<String>("addWidget", "O");
-				options.addWidget = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
-			} catch(ArgumentException) {
-				// do nothing here, the defaults are already set
-			}
-		}
+                string temp = config.GetValue<String>("progInc", "Keypad8");
+                options.progInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("progDec", "Keypad5");
+                options.progDec = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("normInc", "Keypad9");
+                options.normInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("normDec", "Keypad7");
+                options.normDec = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("radiInc", "Keypad6");
+                options.radiInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("radiDec", "Keypad4");
+                options.radiDec = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("timeInc", "Keypad3");
+                options.timeInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("timeDec", "Keypad1");
+                options.timeDec = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("pageIncrement", "Keypad0");
+                options.pageIncrement = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("pageConics", "KeypadEnter");
+                options.pageConics = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("hideWindow", "P");
+                options.hideWindow = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+                temp = config.GetValue<String>("addWidget", "O");
+                options.addWidget = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
+            }
+            catch (ArgumentException)
+            {
+                // do nothing here, the defaults are already set
+            }
+        }
 
-		/// <summary>
-		/// Save our configuration to file.
-		/// </summary>
-		private void saveConfig() {
-			Debug.Log("Saving PreciseNode settings.");
-			PluginConfiguration config = KSP.IO.PluginConfiguration.CreateForType<PreciseNode>(null);
+        /// <summary>
+        /// Save our configuration to file.
+        /// </summary>
+        private void saveConfig()
+        {
+            PluginConfiguration config = KSP.IO.PluginConfiguration.CreateForType<PreciseNode>(null);
 
-			config["conicsMode"] = options.conicsMode;
-			config["progInc"] = options.progInc.ToString();
-			config["progDec"] = options.progDec.ToString();
-			config["normInc"] = options.normInc.ToString();
-			config["normDec"] = options.normDec.ToString();
-			config["radiInc"] = options.radiInc.ToString();
-			config["radiDec"] = options.radiDec.ToString();
-			config["timeInc"] = options.timeInc.ToString();
-			config["timeDec"] = options.timeDec.ToString();
-			config["pageIncrement"] = options.pageIncrement.ToString();
-			config["pageConics"] = options.pageConics.ToString();
-			config["hideWindow"] = options.hideWindow.ToString();
-			config["addWidget"] = options.addWidget.ToString();
-			config["mainWindowX"] = (int)options.mainWindowPos.x;
-			config["mainWindowY"] = (int)options.mainWindowPos.y;
-			config["optWindowX"] = (int)options.optionsWindowPos.x;
-			config["optWindowY"] = (int)options.optionsWindowPos.y;
-			config["keyWindowX"] = (int)options.keymapperWindowPos.x;
-			config["keyWindowY"] = (int)options.keymapperWindowPos.y;
-			config["clockWindowX"] = (int)options.clockWindowPos.x;
-			config["clockWindowY"] = (int)options.clockWindowPos.y;
-			config["conicsWindowX"] = (int)options.conicsWindowPos.x;
-			config["conicsWindowY"] = (int)options.conicsWindowPos.y;
-			config["tripWindowX"] = (int)options.tripWindowPos.x;
-			config["tripWindowY"] = (int)options.tripWindowPos.y;
-			config["showClock"] = options.showClock;
-			config["showEAngle"] = options.showEAngle;
-			config["showConics"] = options.showConics;
-			config["showConicsAlways"] = options.showConicsAlways;
-			config["showOrbitInfo"] = options.showOrbitInfo;
-			config["showUTControls"] = options.showUTControls;
-			config["showManeuverPager"] = options.showManeuverPager;
-			config["intuitiveManeuverGizmos"] = options.intuitiveManeuverGizmos;
+            config["conicsMode"] = options.conicsMode;
+            config["progInc"] = options.progInc.ToString();
+            config["progDec"] = options.progDec.ToString();
+            config["normInc"] = options.normInc.ToString();
+            config["normDec"] = options.normDec.ToString();
+            config["radiInc"] = options.radiInc.ToString();
+            config["radiDec"] = options.radiDec.ToString();
+            config["timeInc"] = options.timeInc.ToString();
+            config["timeDec"] = options.timeDec.ToString();
+            config["pageIncrement"] = options.pageIncrement.ToString();
+            config["pageConics"] = options.pageConics.ToString();
+            config["hideWindow"] = options.hideWindow.ToString();
+            config["addWidget"] = options.addWidget.ToString();
+            config["mainWindowX"] = (int)options.mainWindowPos.x;
+            config["mainWindowY"] = (int)options.mainWindowPos.y;
+            config["optWindowX"] = (int)options.optionsWindowPos.x;
+            config["optWindowY"] = (int)options.optionsWindowPos.y;
+            config["keyWindowX"] = (int)options.keymapperWindowPos.x;
+            config["keyWindowY"] = (int)options.keymapperWindowPos.y;
+            config["clockWindowX"] = (int)options.clockWindowPos.x;
+            config["clockWindowY"] = (int)options.clockWindowPos.y;
+            config["conicsWindowX"] = (int)options.conicsWindowPos.x;
+            config["conicsWindowY"] = (int)options.conicsWindowPos.y;
+            config["tripWindowX"] = (int)options.tripWindowPos.x;
+            config["tripWindowY"] = (int)options.tripWindowPos.y;
+            config["showClock"] = options.showClock;
+            config["showEAngle"] = options.showEAngle;
+            config["showConics"] = options.showConics;
+            config["showConicsAlways"] = options.showConicsAlways;
+            config["showOrbitInfo"] = options.showOrbitInfo;
+            config["showUTControls"] = options.showUTControls;
+            config["showManeuverPager"] = options.showManeuverPager;
+            config["intuitiveManeuverGizmos"] = options.intuitiveManeuverGizmos;
 #if NODE_CLEANUP
 			config["removeUsedNodes"] = options.removeUsedNodes;
 			config["usedNodeThreshold"] = options.usedNodeThreshold;
 #endif
-			config["largeUTIncrement"] = options.largeUTIncrement;
-			config["angleRefIndex"] = options.angleRefIndex;
+            config["largeUTIncrement"] = options.largeUTIncrement;
+            config["angleRefIndex"] = options.angleRefIndex;
 
-			config.save();
-		}
-	}	
+            config.save();
+        }
+    }
 }
 

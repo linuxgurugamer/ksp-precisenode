@@ -21,3 +21,5 @@ copy /Y "%1%3".pdb "%GAMEDATA%\%GAMEDIR%\Plugins
 copy /Y %VERSIONFILE% %GAMEDATA%\%GAMEDIR%
 
 xcopy /y /s /I %GAMEDATA%\%GAMEDIR% "%H%\GameData\%GAMEDIR%"
+
+rem pause

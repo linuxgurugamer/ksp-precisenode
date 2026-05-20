@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-using KSP.IO;
+using static UnityEngine.GraphicsBuffer;
 
 /******************************************************************************
  * Copyright (c) 2013-2014, Justin Bengtson
@@ -31,272 +30,328 @@ using KSP.IO;
  * POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-namespace RegexKSP {
-	internal static class Extensions {
-		/// <summary>
-		/// Creates a new Meneuver Node Gizmo if needed
-		/// </summary>
-		internal static void CreateNodeGizmo(this ManeuverNode node) {
-			if (node.attachedGizmo == null) {
-				node.AttachGizmo(MapView.ManeuverNodePrefab, FlightGlobals.ActiveVessel.patchedConicRenderer);
-			}
-		}
+namespace RegexKSP
+{
+    internal static class Extensions
+    {
+        /// <summary>
+        /// Creates a new Meneuver Node Gizmo if needed
+        /// </summary>
+        internal static void CreateNodeGizmo(this ManeuverNode node)
+        {
+            if (node.attachedGizmo == null)
+            {
+                node.AttachGizmo(MapView.ManeuverNodePrefab, FlightGlobals.ActiveVessel.patchedConicRenderer);
+            }
+        }
 
-		/// <summary>
-		/// Converts the UT to human-readable Kerbal local time.
-		/// </summary>
-		/// <returns>The converted time.</returns>
-		/// <param name="UT">Kerbal Space Program Universal Time.</param>
-		internal static String convertUTtoHumanTime(this double UT) {
+        /// <summary>
+        /// Converts the UT to human-readable Kerbal local time.
+        /// </summary>
+        /// <returns>The converted time.</returns>
+        /// <param name="UT">Kerbal Space Program Universal Time.</param>
+        internal static String convertUTtoHumanTime(this double UT)
+        {
             //return KSPUtil.dateTimeFormatter.PrintDate(UT, true, true);
             // Need to add secsInYear because the TimeStamp starts at year 0
-            double secsInYear = GameSettings.KERBIN_TIME ? 9201600  + 21600: 31536000 + 86400;
+            double secsInYear = GameSettings.KERBIN_TIME ? 9201600 + 21600 : 31536000 + 86400;
             return KSPUtil.dateTimeFormatter.PrintTimeStamp(UT + secsInYear, true, true);
         }
 
-		/// <summary>
-		/// Converts the UT to human-readable duration.
-		/// </summary>
-		/// <returns>The converted time.</returns>
-		/// <param name="UT">Kerbal Space Program Universal Time.</param>
-		internal static String convertUTtoHumanDuration(this double UT) {
-			return KSPUtil.dateTimeFormatter.PrintTimeStampCompact(UT, true, true);
-		}
-
-		/// <summary>
-		/// Merges the given node into the next lowest node (n's index - 1).  If there is no lower node, does nothing.
-		/// </summary>
-		/// <param name="n">The ManeuverNode to merge down.</param>
-		internal static void mergeNodeDown(this ManeuverNode n) {
-			PatchedConicSolver p = NodeTools.getSolver();
-			Orbit o = FlightGlobals.ActiveVessel.orbit;
-			int nodes = p.maneuverNodes.Count;
-			int idx = p.maneuverNodes.IndexOf(n);
-
-			// if we're the last or only node, don't bother.
-			if(idx == 0 || nodes < 2) { return; }
-			ManeuverNode mergeInto = p.maneuverNodes[idx-1];
-
-			Vector3d deltaV = mergeBurnVectors(mergeInto.UT, mergeInto, n.patch);
-
-			mergeInto.OnGizmoUpdated(deltaV, mergeInto.UT);
-			p.maneuverNodes.Remove(n);
-		}
-
-		// calculation function for mergeNodeDown
-		private static Vector3d mergeBurnVectors(double UT, ManeuverNode first, Orbit projOrbit) {
-			Orbit curOrbit = first.findPreviousOrbit();
-			return difference(curOrbit.getOrbitalVelocityAtUT(UT), projOrbit.getOrbitalVelocityAtUT(UT));
-		}
-
-		// calculation function for mergeNodeDown
-		private static Orbit findPreviousOrbit(this ManeuverNode n) {
-			PatchedConicSolver p = NodeTools.getSolver();
-			int idx = p.maneuverNodes.IndexOf(n);
-			if(idx > 0) {
-				return p.maneuverNodes[idx-1].patch;
-			} else {
-				return FlightGlobals.ActiveVessel.orbit;
-			}
-		}
-
-		// calculation function for mergeNodeDown
-		private static Vector3d difference(Vector3d initial, Vector3d final) {
-			return new Vector3d(-(initial.x - final.x), -(initial.y - final.y), -(initial.z - final.z)).xzy;
-		}
-
-		/// <summary>
-		/// Formats the given double into meters.
-		/// </summary>
-		/// <returns>The string format, in meters.</returns>
-		/// <param name="d">The double to format</param>
-		internal static string formatMeters(this double d) {
-			string multiplier = "";
-			if ((Math.Abs(d) / 1000) >= 100) {
-				d /= 1000;
-				multiplier = "k";
-
-				if ((Math.Abs(d) / 1000) >= 100) {
-					d /= 1000;
-					multiplier = "M";
-
-					if ((Math.Abs(d) / 1000) >= 100) {
-						d /= 1000;
-						multiplier = "G";
-					}
-				}
-			}
-
-			return string.Format("{0:0.##} {1}m", d, multiplier);
-		}
-
-		/// <summary>
-		/// Gets the UT for the equatorial AN.
-		/// </summary>
-		/// <returns>The equatorial AN UT.</returns>
-		/// <param name="o">The Orbit to calculate the UT from.</param>
-		internal static double getEquatorialANUT(this Orbit o) {
-            //TODO: Add safeguards for bad UTs, may need to be refactored to NodeManager
-			return o.GetUTforTrueAnomaly(o.GetTrueAnomalyOfZupVector(o.GetANVector()), 2);
-		}
-
-		/// <summary>
-		/// Gets the UT for the ascending node in reference to the target orbit.
-		/// </summary>
-		/// <returns>The UT for the ascending node in reference to the target orbit.</returns>
-		/// <param name="a">The orbit to find the UT on.</param>
-		/// <param name="b">The target orbit.</param>
-		internal static double getTargetANUT(this Orbit a, Orbit b) {
-            //TODO: Add safeguards for bad UTs, may need to be refactored to NodeManager
-			Vector3d ANVector = Vector3d.Cross(b.h, a.GetOrbitNormal()).normalized;
-			return a.GetUTforTrueAnomaly(a.GetTrueAnomalyOfZupVector(ANVector), 2);
-		}
-
-		/// <summary>
-		/// Gets the UT for the equatorial DN.
-		/// </summary>
-		/// <returns>The equatorial DN UT.</returns>
-		/// <param name="o">The Orbit to calculate the UT from.</param>
-		internal static double getEquatorialDNUT(this Orbit o) {
-            //TODO: Add safeguards for bad UTs, may need to be refactored to NodeManager
-			Vector3d DNVector = QuaternionD.AngleAxis((o.LAN + 180).Angle360(), Planetarium.Zup.Z) * Planetarium.Zup.X;
-			return o.GetUTforTrueAnomaly(o.GetTrueAnomalyOfZupVector(DNVector), 2);
-		}
-
-		/// <summary>
-		/// Gets the UT for the descending node in reference to the target orbit.
-		/// </summary>
-		/// <returns>The UT for the descending node in reference to the target orbit.</returns>
-		/// <param name="a">The orbit to find the UT on.</param>
-		/// <param name="b">The target orbit.</param>
-		internal static double getTargetDNUT(this Orbit a, Orbit b) {
-            //TODO: Add safeguards for bad UTs, may need to be refactored to NodeManager
-			Vector3d DNVector = Vector3d.Cross(a.GetOrbitNormal(), b.h).normalized;
-			return a.GetUTforTrueAnomaly(a.GetTrueAnomalyOfZupVector(DNVector), 2);
-		}
-
-		/// <summary>
-		/// Adjusts the specified angle to between 0 and 360 degrees.
-		/// </summary>
-		/// <param name="d">The specified angle to restrict.</param>
-		internal static double Angle360(this double d) {
-            d %= 360;
-            if(d < 0) {
-				return d + 360;
-			}
-			return d;
+        /// <summary>
+        /// Converts the UT to human-readable duration.
+        /// </summary>
+        /// <returns>The converted time.</returns>
+        /// <param name="UT">Kerbal Space Program Universal Time.</param>
+        internal static String convertUTtoHumanDuration(this double UT)
+        {
+            return KSPUtil.dateTimeFormatter.PrintTimeStampCompact(UT, true, true);
         }
 
-		/// <summary>
-		/// Gets the ejection angle of the current maneuver node.
-		/// </summary>
-		/// <returns>The ejection angle in degrees.  Positive results are the angle from prograde, negative results are the angle from retrograde.</returns>
-		/// <param name="nodeUT">Kerbal Space Program Universal Time.</param>
-		internal static double getEjectionAngle(this Orbit o, ManeuverNode node) {
-			if (node.nextPatch.patchEndTransition == Orbit.PatchTransitionType.ESCAPE) {
-				CelestialBody body = o.referenceBody;
+        /// <summary>
+        /// Merges the given node into the next lowest node (n's index - 1).  If there is no lower node, does nothing.
+        /// </summary>
+        /// <param name="n">The ManeuverNode to merge down.</param>
+        internal static void mergeNodeDown(this ManeuverNode n)
+        {
+            PatchedConicSolver p = NodeTools.getSolver();
+            Orbit o = FlightGlobals.ActiveVessel.orbit;
+            int nodes = p.maneuverNodes.Count;
+            int idx = p.maneuverNodes.IndexOf(n);
 
-				// Calculate the angle between the node's position and the reference body's velocity at nodeUT
-				Vector3d prograde = body.orbit.getOrbitalVelocityAtUT(node.UT);
-				Vector3d position = o.getRelativePositionAtUT(node.UT);
-				double eangle = ((Math.Atan2(prograde.y, prograde.x) - Math.Atan2(position.y, position.x)) * 180.0 / Math.PI).Angle360();
+            // if we're the last or only node, don't bother.
+            if (idx == 0 || nodes < 2) { return; }
+            ManeuverNode mergeInto = p.maneuverNodes[idx - 1];
 
-				// Correct to angle from retrograde if needed.
-				if (eangle > 180) {
-					eangle = 180 - eangle;
-				}
+            Vector3d deltaV = mergeBurnVectors(mergeInto.UT, mergeInto, n.patch);
 
-				return eangle;
-			} else {
-				return double.NaN;
-			}
-		}
+            mergeInto.OnGizmoUpdated(deltaV, mergeInto.UT);
+            p.maneuverNodes.Remove(n);
+        }
 
-		internal static double getEjectionInclination(this Orbit o, ManeuverNode node) {
-			if (node.nextPatch.patchEndTransition == Orbit.PatchTransitionType.ESCAPE) {
-				CelestialBody body = o.referenceBody;
-				Orbit bodyOrbit = body.orbit;
-				Orbit orbitAfterEscape = node.nextPatch.nextPatch;
-				return bodyOrbit.getRelativeInclination(orbitAfterEscape);
-			} else {
-				return double.NaN;
-			}
-		}
+        // calculation function for mergeNodeDown
+        private static Vector3d mergeBurnVectors(double UT, ManeuverNode first, Orbit projOrbit)
+        {
+            Orbit curOrbit = first.findPreviousOrbit();
+            return difference(curOrbit.getOrbitalVelocityAtUT(UT), projOrbit.getOrbitalVelocityAtUT(UT));
+        }
 
-		internal static double getRelativeInclination(this Orbit o, Orbit other) {
-			Vector3d normal = o.GetOrbitNormal().xzy.normalized;
-			Vector3d otherNormal = other.GetOrbitNormal().xzy.normalized;
-			double angle = Vector3d.Angle(normal, otherNormal);
-			bool south = Vector3d.Dot(Vector3d.Cross(normal, otherNormal), normal.xzy) > 0;
-			return south ? -angle : angle;
-		}
+        // calculation function for mergeNodeDown
+        private static Orbit findPreviousOrbit(this ManeuverNode n)
+        {
+            PatchedConicSolver p = NodeTools.getSolver();
+            int idx = p.maneuverNodes.IndexOf(n);
+            if (idx > 0)
+            {
+                return p.maneuverNodes[idx - 1].patch;
+            }
+            else
+            {
+                return FlightGlobals.ActiveVessel.orbit;
+            }
+        }
 
-		internal static Orbit findNextEncounter(this ManeuverNode node) {
-			System.Collections.ObjectModel.ReadOnlyCollection<Orbit> plan = node.solver.flightPlan.AsReadOnly();
-			Orbit curOrbit = node.patch; // FlightGlobals.ActiveVessel.orbit;
-			for(int k = plan.IndexOf(node.patch); k < plan.Count; k++) {
-				Orbit o = plan[k];
-				if (curOrbit.referenceBody.name != o.referenceBody.name && !o.referenceBody.isSun()) {
-					return o;
-				}
-			}
-			return null;
-		}
+        // calculation function for mergeNodeDown
+        private static Vector3d difference(Vector3d initial, Vector3d final)
+        {
+            return new Vector3d(-(initial.x - final.x), -(initial.y - final.y), -(initial.z - final.z)).xzy;
+        }
 
-		internal static bool isClosed(this Orbit o) {
-			return o.patchEndTransition == Orbit.PatchTransitionType.FINAL;
-		}
+        /// <summary>
+        /// Formats the given double into meters.
+        /// </summary>
+        /// <returns>The string format, in meters.</returns>
+        /// <param name="d">The double to format</param>
+        internal static string formatMeters(this double d)
+        {
+            string multiplier = "";
+            if ((Math.Abs(d) / 1000) >= 100)
+            {
+                d /= 1000;
+                multiplier = "k";
 
-		internal static bool hasAP(this Orbit o) {
-			return o.isClosed();
-		}
+                if ((Math.Abs(d) / 1000) >= 100)
+                {
+                    d /= 1000;
+                    multiplier = "M";
 
-		internal static bool hasAN(this ManeuverNode node, Orbit target) {
-			if ((target != null) || !FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
-				if (target == null) {
-					target = FlightGlobals.ActiveVessel.orbit.referenceBody.orbit;
-				}
-				double relativeInclination = node.patch.getRelativeInclination(target);
-				if (Math.Abs(relativeInclination) >= 0.001d) {
-					Orbit patch = node.patch;
-					double ut;
-					if (target != null) {
-						ut = patch.getTargetANUT(target);
-					} else {
-						ut = patch.getEquatorialANUT();
-					}
-					return patch.isUTInsidePatch(ut);
-				}
-			}
-			return false;
-		}
+                    if ((Math.Abs(d) / 1000) >= 100)
+                    {
+                        d /= 1000;
+                        multiplier = "G";
+                    }
+                }
+            }
 
-		internal static bool hasDN(this ManeuverNode node, Orbit target) {
-			if ((target != null) || !FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
-				if (target == null) {
-					target = FlightGlobals.ActiveVessel.orbit.referenceBody.orbit;
-				}
-				double relativeInclination = node.patch.getRelativeInclination(target);
-				if (Math.Abs(relativeInclination) >= 0.001d) {
-					Orbit patch = node.patch;
-					double ut;
-					if (target != null) {
-						ut = patch.getTargetDNUT(target);
-					} else {
-						ut = patch.getEquatorialDNUT();
-					}
-					return patch.isUTInsidePatch(ut);
-				}
-			}
-			return false;
-		}
+            return string.Format("{0:0.##} {1}m", d, multiplier);
+        }
 
-		internal static bool isUTInsidePatch(this Orbit o, double ut) {
-			return (ut >= Planetarium.GetUniversalTime()) && (o.isClosed() || (ut <= o.EndUT));
-		}
+        /// <summary>
+        /// Gets the UT for the equatorial AN.
+        /// </summary>
+        /// <returns>The equatorial AN UT.</returns>
+        /// <param name="o">The Orbit to calculate the UT from.</param>
+        internal static double getEquatorialANUT(this Orbit o)
+        {
+            //TODO: Add safeguards for bad UTs, may need to be refactored to NodeManager
+            return o.GetUTforTrueAnomaly(o.GetTrueAnomalyOfZupVector(o.GetANVector()), 2);
+        }
 
-		internal static bool isSun(this CelestialBody body) {
-			return body.name == "Sun";
-		}
-	}
+        /// <summary>
+        /// Gets the UT for the ascending node in reference to the target orbit.
+        /// </summary>
+        /// <returns>The UT for the ascending node in reference to the target orbit.</returns>
+        /// <param name="a">The orbit to find the UT on.</param>
+        /// <param name="b">The target orbit.</param>
+        internal static double getTargetANUT(this Orbit a, Orbit b)
+        {
+            //TODO: Add safeguards for bad UTs, may need to be refactored to NodeManager
+            Vector3d ANVector = Vector3d.Cross(b.h, a.GetOrbitNormal()).normalized;
+            return a.GetUTforTrueAnomaly(a.GetTrueAnomalyOfZupVector(ANVector), 2);
+        }
+
+        /// <summary>
+        /// Gets the UT for the equatorial DN.
+        /// </summary>
+        /// <returns>The equatorial DN UT.</returns>
+        /// <param name="o">The Orbit to calculate the UT from.</param>
+        internal static double getEquatorialDNUT(this Orbit o)
+        {
+            //TODO: Add safeguards for bad UTs, may need to be refactored to NodeManager
+            Vector3d DNVector = QuaternionD.AngleAxis((o.LAN + 180).Angle360(), Planetarium.Zup.Z) * Planetarium.Zup.X;
+            return o.GetUTforTrueAnomaly(o.GetTrueAnomalyOfZupVector(DNVector), 2);
+        }
+
+        /// <summary>
+        /// Gets the UT for the descending node in reference to the target orbit.
+        /// </summary>
+        /// <returns>The UT for the descending node in reference to the target orbit.</returns>
+        /// <param name="a">The orbit to find the UT on.</param>
+        /// <param name="b">The target orbit.</param>
+        internal static double getTargetDNUT(this Orbit a, Orbit b)
+        {
+            //TODO: Add safeguards for bad UTs, may need to be refactored to NodeManager
+            Vector3d DNVector = Vector3d.Cross(a.GetOrbitNormal(), b.h).normalized;
+            return a.GetUTforTrueAnomaly(a.GetTrueAnomalyOfZupVector(DNVector), 2);
+        }
+
+        /// <summary>
+        /// Adjusts the specified angle to between 0 and 360 degrees.
+        /// </summary>
+        /// <param name="d">The specified angle to restrict.</param>
+        internal static double Angle360(this double d)
+        {
+            d %= 360;
+            if (d < 0)
+            {
+                return d + 360;
+            }
+            return d;
+        }
+
+        /// <summary>
+        /// Gets the ejection angle of the current maneuver node.
+        /// </summary>
+        /// <returns>The ejection angle in degrees.  Positive results are the angle from prograde, negative results are the angle from retrograde.</returns>
+        /// <param name="nodeUT">Kerbal Space Program Universal Time.</param>
+        internal static double getEjectionAngle(this Orbit o, ManeuverNode node)
+        {
+            if (node.nextPatch.patchEndTransition == Orbit.PatchTransitionType.ESCAPE)
+            {
+                CelestialBody body = o.referenceBody;
+
+                // Calculate the angle between the node's position and the reference body's velocity at nodeUT
+                Vector3d prograde = body.orbit.getOrbitalVelocityAtUT(node.UT);
+                Vector3d position = o.getRelativePositionAtUT(node.UT);
+                double eangle = ((Math.Atan2(prograde.y, prograde.x) - Math.Atan2(position.y, position.x)) * 180.0 / Math.PI).Angle360();
+
+                // Correct to angle from retrograde if needed.
+                if (eangle > 180)
+                {
+                    eangle = 180 - eangle;
+                }
+
+                return eangle;
+            }
+            else
+            {
+                return double.NaN;
+            }
+        }
+
+        internal static double getEjectionInclination(this Orbit o, ManeuverNode node)
+        {
+            if (node.nextPatch.patchEndTransition == Orbit.PatchTransitionType.ESCAPE)
+            {
+                CelestialBody body = o.referenceBody;
+                Orbit bodyOrbit = body.orbit;
+                Orbit orbitAfterEscape = node.nextPatch.nextPatch;
+                return bodyOrbit.getRelativeInclination(orbitAfterEscape);
+            }
+            else
+            {
+                return double.NaN;
+            }
+        }
+
+        internal static double getRelativeInclination(this Orbit o, Orbit other)
+        {
+            Vector3d normal = o.GetOrbitNormal().xzy.normalized;
+            Vector3d otherNormal = other.GetOrbitNormal().xzy.normalized;
+            double angle = Vector3d.Angle(normal, otherNormal);
+            bool south = Vector3d.Dot(Vector3d.Cross(normal, otherNormal), normal.xzy) > 0;
+            return south ? -angle : angle;
+        }
+
+        internal static Orbit findNextEncounter(this ManeuverNode node)
+        {
+            System.Collections.ObjectModel.ReadOnlyCollection<Orbit> plan = node.solver.flightPlan.AsReadOnly();
+            Orbit curOrbit = node.patch; // FlightGlobals.ActiveVessel.orbit;
+            for (int k = plan.IndexOf(node.patch); k < plan.Count; k++)
+            {
+                Orbit o = plan[k];
+                if (curOrbit.referenceBody.name != o.referenceBody.name && !o.referenceBody.isSun())
+                {
+                    return o;
+                }
+            }
+            return null;
+        }
+
+        internal static bool isClosed(this Orbit o)
+        {
+            return o.patchEndTransition == Orbit.PatchTransitionType.FINAL;
+        }
+
+        internal static bool hasAP(this Orbit o)
+        {
+            return o.isClosed();
+        }
+
+        internal static bool hasAN(this ManeuverNode node, Orbit target)
+        {
+            if ((target != null) || !FlightGlobals.ActiveVessel.orbit.referenceBody.isSun())
+            {
+                if (target == null)
+                {
+                    target = FlightGlobals.ActiveVessel.orbit.referenceBody.orbit;
+                }
+                double relativeInclination = node.patch.getRelativeInclination(target);
+                if (Math.Abs(relativeInclination) >= 0.001d)
+                {
+                    Orbit patch = node.patch;
+                    double ut;
+                    if (target != null)
+                    {
+                        ut = patch.getTargetANUT(target);
+                    }
+                    else
+                    {
+                        ut = patch.getEquatorialANUT();
+                    }
+                    return patch.isUTInsidePatch(ut);
+                }
+            }
+            return false;
+        }
+
+        internal static bool hasDN(this ManeuverNode node, Orbit target)
+        {
+            if ((target != null) || !FlightGlobals.ActiveVessel.orbit.referenceBody.isSun())
+            {
+                if (target == null)
+                {
+                    target = FlightGlobals.ActiveVessel.orbit.referenceBody.orbit;
+                }
+                double relativeInclination = node.patch.getRelativeInclination(target);
+                if (Math.Abs(relativeInclination) >= 0.001d)
+                {
+                    Orbit patch = node.patch;
+                    double ut;
+                    if (target != null)
+                    {
+                        ut = patch.getTargetDNUT(target);
+                    }
+                    else
+                    {
+                        ut = patch.getEquatorialDNUT();
+                    }
+                    bool b = patch.isUTInsidePatch(ut);
+                    return patch.isUTInsidePatch(ut);
+                }
+            }
+
+            return false;
+        }
+
+        internal static bool isUTInsidePatch(this Orbit o, double ut)
+        {
+            return (ut >= Planetarium.GetUniversalTime()) && (o.isClosed() || (ut <= o.EndUT));
+        }
+
+        internal static bool isSun(this CelestialBody body)
+        {
+            return body.name == "Sun";
+        }
+    }
 }

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using KSP.Localization;
+using System;
 using UnityEngine;
-using KSP.IO;
 
 /******************************************************************************
  * Copyright (c) 2013-2014, Justin Bengtson
@@ -30,68 +30,99 @@ using KSP.IO;
  * POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-namespace RegexKSP {
-	internal static class GUIParts {
-		internal static void drawDoubleLabel(String text1, float width1, String text2, float width2) {
+namespace RegexKSP
+{
+    internal static class GUIParts
+    {
+        internal static void drawDoubleLabel(String text1, float width1, String text2, float width2)
+        {
             GUIContent content = new GUIContent(text1 + text2);
             Vector2 size = GUI.skin.label.CalcSize(content);
             if (size.x > width1 + width2)
                 width2 = size.x - width1;
-                
-            GUILayout.BeginHorizontal();
-			GUILayout.Label(text1, GUILayout.Width(width1));
-			GUILayout.Label(text2, GUILayout.Width(width2));
-			GUILayout.EndHorizontal();
-		}
 
-		internal static void drawButton(String text, Color bgColor, Action callback, params GUILayoutOption[] options) {
-			Color defaultColor = GUI.backgroundColor;
-			GUI.backgroundColor = bgColor;
-			if(GUILayout.Button(text, options)) {
-				callback();
-			}
-			GUI.backgroundColor = defaultColor;
-		}
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label(text1, GUILayout.Width(width1));
+                GUILayout.Label(text2, GUILayout.Width(width2));
+            }
+        }
 
-		internal static void drawConicsControls(PreciseNodeOptions options) {
-			PatchedConicSolver solver = NodeTools.getSolver();
-			Color defaultColor = GUI.backgroundColor;
-			
-			// Conics mode controls
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Conics mode: ", GUILayout.Width(100));
-			for (int mode = 0; mode <= 4; mode++) {
-				drawButton(mode.ToString(), (options.conicsMode == mode) ? Color.yellow : defaultColor, () => {
-					options.setConicsMode(mode);
-				});
-			}
-			GUILayout.EndHorizontal();
+        internal static void drawButton(String text, Color bgColor, Action callback, params GUILayoutOption[] options)
+        {
+            Color defaultColor = GUI.backgroundColor;
+            GUI.backgroundColor = bgColor;
+            if (GUILayout.Button(text, options))
+            {
+                callback();
+            }
+            GUI.backgroundColor = defaultColor;
+        }
+        internal static void drawButton(GUIContent text, Color bgColor, Action callback, params GUILayoutOption[] options)
+        {
+            Color defaultColor = GUI.backgroundColor;
+            GUI.backgroundColor = bgColor;
+            if (GUILayout.Button(text, options))
+            {
+                callback();
+            }
+            GUI.backgroundColor = defaultColor;
+        }
 
-			// conics patch limit editor.
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Change conics samples:", GUILayout.Width(200));
-			drawPlusMinusButtons(solver.IncreasePatchLimit, solver.DecreasePatchLimit);
-			GUILayout.EndHorizontal();
-		}
+        internal static void drawConicsControls(PreciseNodeOptions options)
+        {
+            PatchedConicSolver solver = NodeTools.getSolver();
+            Color defaultColor = GUI.backgroundColor;
 
-		internal static void drawPlusMinusButtons(Action plus, Action minus, bool plusEnabled = true, bool minusEnabled = true) {
-			bool oldEnabled = GUI.enabled;
-			GUI.enabled = plusEnabled || minusEnabled;
-			drawButton("+/-", GUI.backgroundColor, () => {
-				switch (Event.current.button) {
-					case 0:
-						if (plusEnabled) {
-							plus();
-						}
-						break;
-					case 1:
-						if (minusEnabled) {
-							minus();
-						}
-						break;
-				}
-			});
-			GUI.enabled = oldEnabled;
-		}
-	}
+            // Conics mode controls
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label(Localizer.Format("#PN_ConicsMode"), GUILayout.Width(100));
+#if false
+                for (int mode = 0; mode <= 4; mode++)
+                {
+                    drawButton(mode.ToString(), (options.conicsMode == mode) ? Color.yellow : defaultColor, () =>
+                    {
+                        options.setConicsMode(mode);
+                    });
+                }
+#endif
+                int newRef = GUILayout.Toolbar(-1, new String[] { "0", "1", "2", "3", "4" }, GUILayout.Width(130));
+                if (newRef != -1)
+                    options.setConicsMode(newRef);
+            }
+
+            // conics patch limit editor.
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Change conics samples:", GUILayout.Width(200));
+                drawPlusMinusButtons(solver.IncreasePatchLimit, solver.DecreasePatchLimit);
+            }
+        }
+
+        internal static void drawPlusMinusButtons(Action plus, Action minus, bool plusEnabled = true, bool minusEnabled = true)
+        {
+            bool oldEnabled = GUI.enabled;
+            GUI.enabled = plusEnabled || minusEnabled;
+            drawButton(new GUIContent("+/-", "LeftClick for +, RightClick for -"), GUI.backgroundColor, () =>
+            {
+                switch (Event.current.button)
+                {
+                    case 0:
+                        if (plusEnabled)
+                        {
+                            plus();
+                        }
+                        break;
+                    case 1:
+                        if (minusEnabled)
+                        {
+                            minus();
+                        }
+                        break;
+                }
+            });
+            GUI.enabled = oldEnabled;
+        }
+    }
 }

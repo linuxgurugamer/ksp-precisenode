@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using KSP.IO;
+using System.IO;
 using UnityEngine;
 
 
@@ -32,91 +30,272 @@ using UnityEngine;
  * POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-namespace RegexKSP {
-	internal class PreciseNodeOptions {
-		//internal Rect mainWindowPos = new Rect(Screen.width / 10, 20, 0, 0);
+namespace RegexKSP
+{
+    internal class PreciseNodeOptions
+    {
         internal Rect mainWindowPos = new Rect(Screen.width / 10, 20, 0, 0);
         internal Rect optionsWindowPos = new Rect(Screen.width / 3, 20, 0, 0);
-		internal Rect keymapperWindowPos = new Rect(Screen.width / 5, 20, 0, 0);
-		internal Rect clockWindowPos = new Rect(Screen.width / 3, Screen.height / 2, 0, 0);
-		internal Rect conicsWindowPos = new Rect(Screen.width / 5, Screen.height / 2, 0, 0);
-		internal Rect tripWindowPos = new Rect(Screen.width / 5, Screen.height / 5, 0, 0);
+        internal Rect keymapperWindowPos = new Rect(Screen.width / 5, 20, 0, 0);
+        internal Rect clockWindowPos = new Rect(Screen.width / 3, Screen.height / 2, 0, 0);
+        internal Rect conicsWindowPos = new Rect(Screen.width / 5, Screen.height / 2, 0, 0);
+        internal Rect tripWindowPos = new Rect(Screen.width / 5, Screen.height / 5, 0, 0);
 
-		internal bool showManeuverPager = true;
-		internal bool showConics = true;
-		internal bool showConicsAlways;
-		internal bool showClock;
-		internal bool showTrip;
-		internal bool showUTControls;
-		internal bool showEAngle = true;
-		internal bool showOrbitInfo;
-		internal bool intuitiveManeuverGizmos;
+        internal bool showManeuverPager = true;
+        internal bool showConics = true;
+        internal bool showAngleInput = true;
+        internal bool showConicsAlways;
+        internal bool showClock;
+        internal bool showTrip;
+        internal bool showUTControls;
+        internal bool showEAngle = true;
+        internal bool showOrbitInfo;
+        internal bool intuitiveManeuverGizmos;
+
+        internal bool showTooltips = true;
+       // internal bool ???
 #if NODE_CLEANUP
 		internal bool removeUsedNodes;
 #endif
 
-		internal bool largeUTIncrement;
+        internal bool largeUTIncrement;
 
-		internal KeyCode progInc = KeyCode.Keypad8;
-		internal KeyCode progDec = KeyCode.Keypad5;
-		internal KeyCode normInc = KeyCode.Keypad9;
-		internal KeyCode normDec = KeyCode.Keypad7;
-		internal KeyCode radiInc = KeyCode.Keypad6;
-		internal KeyCode radiDec = KeyCode.Keypad4;
-		internal KeyCode timeInc = KeyCode.Keypad3;
-		internal KeyCode timeDec = KeyCode.Keypad1;
-		internal KeyCode pageIncrement = KeyCode.Keypad0;
-		internal KeyCode pageConics = KeyCode.KeypadEnter;
-		internal KeyCode hideWindow = KeyCode.P;
-		internal KeyCode addWidget = KeyCode.O;
-		internal double increment = 1.0;
-		internal double usedNodeThreshold = 0.5;
-		internal int conicsMode = 3;
-		internal int angleRefIndex = 0; // 0=Periapsis, 1=AN, 2=VernalEquinox
+        internal KeyCode progInc = KeyCode.Keypad8;
+        internal KeyCode progDec = KeyCode.Keypad5;
+        internal KeyCode normInc = KeyCode.Keypad9;
+        internal KeyCode normDec = KeyCode.Keypad7;
+        internal KeyCode radiInc = KeyCode.Keypad6;
+        internal KeyCode radiDec = KeyCode.Keypad4;
+        internal KeyCode timeInc = KeyCode.Keypad3;
+        internal KeyCode timeDec = KeyCode.Keypad1;
+        internal KeyCode pageIncrement = KeyCode.Keypad0;
+        internal KeyCode pageConics = KeyCode.KeypadEnter;
+        internal KeyCode hideWindow = KeyCode.P;
+        internal KeyCode addWidget = KeyCode.O;
+        internal double increment = 1.0;
+        internal double usedNodeThreshold = 0.5;
+        internal int conicsMode = 3;
+        internal int angleRefIndex = 0; // 0=Periapsis, 1=AN, 2=VernalEquinox
 
-		internal void downIncrement() {
-			if (increment == 0.01) {
-				increment = 0.1;
-			} else if (increment == 0.1) {
-				increment = 1;
-			} else if (increment == 1) {
-				increment = 10;
-			} else if (increment == 10) {
-				increment = 100;
-			} else if (increment == 100) {
-				increment = 0.01;
-			} else {
-				increment = 1;
-			}
-		}
+        internal PreciseNodeOptions()
+        {
+            LoadSettings();
+        }
+        internal void downIncrement()
+        {
+            if (increment == 0.01)
+            {
+                increment = 0.1;
+            }
+            else if (increment == 0.1)
+            {
+                increment = 1;
+            }
+            else if (increment == 1)
+            {
+                increment = 10;
+            }
+            else if (increment == 10)
+            {
+                increment = 100;
+            }
+            else if (increment == 100)
+            {
+                increment = 0.01;
+            }
+            else
+            {
+                increment = 1;
+            }
+        }
 
-		internal void upIncrement() {
-			if (increment == 0.01) {
-				increment = 100;
-			} else if (increment == 0.1) {
-				increment = 0.01;
-			} else if (increment == 1) {
-				increment = 0.1;
-			} else if (increment == 10) {
-				increment = 1;
-			} else if (increment == 100) {
-				increment = 10;
-			} else {
-				increment = 1;
-			}
-		}
+        internal void upIncrement()
+        {
+            if (increment == 0.01)
+            {
+                increment = 100;
+            }
+            else if (increment == 0.1)
+            {
+                increment = 0.01;
+            }
+            else if (increment == 1)
+            {
+                increment = 0.1;
+            }
+            else if (increment == 10)
+            {
+                increment = 1;
+            }
+            else if (increment == 100)
+            {
+                increment = 10;
+            }
+            else
+            {
+                increment = 1;
+            }
+        }
 
-		internal void setConicsMode(int mode) {
-			conicsMode = mode;
-			NodeTools.changeConicsMode(conicsMode);
-		}
+        internal void setConicsMode(int mode)
+        {
+            conicsMode = mode;
+            NodeTools.changeConicsMode(conicsMode);
+        }
 
-		internal void pageConicsMode() {
-			conicsMode++;
-			if (conicsMode < 0 || conicsMode > 4) {
-				conicsMode = 0;
-			}
-			NodeTools.changeConicsMode(conicsMode);
-		}
-	}
+        internal void pageConicsMode()
+        {
+            conicsMode++;
+            if (conicsMode < 0 || conicsMode > 4)
+            {
+                conicsMode = 0;
+            }
+            NodeTools.changeConicsMode(conicsMode);
+        }
+
+
+        string SETTINGS_FILE { get { return ( KSPUtil.ApplicationRootPath + "GameData/PreciseNode/PluginData/settings.cfg").Replace("\\", "/"); } }
+
+        internal void SaveSettings()
+        {
+            ConfigNode root = new ConfigNode("SETTINGS");
+            ConfigNode node = root.AddNode("SETTINGS");
+            SaveRect(node, "mainWindowPos", mainWindowPos);
+            SaveRect(node, "optionsWindowPos", optionsWindowPos);
+            SaveRect(node, "keymapperWindowPos", keymapperWindowPos);
+            SaveRect(node, "clockWindowPos", clockWindowPos);
+            SaveRect(node, "conicsWindowPos", conicsWindowPos);
+            SaveRect(node, "tripWindowPos", tripWindowPos);
+
+            node.AddValue("showManeuverPager", showManeuverPager);
+            node.AddValue("showConics", showConics);
+            node.AddValue("showAngleInput", showAngleInput);
+            node.AddValue("showConicsAlways", showConicsAlways);
+            node.AddValue("showClock", showClock);
+            node.AddValue("showTrip", showTrip);
+            node.AddValue("showUTControls", showUTControls);
+            node.AddValue("showEAngle", showEAngle);
+            node.AddValue("showOrbitInfo", showOrbitInfo);
+            node.AddValue("intuitiveManeuverGizmos", intuitiveManeuverGizmos);
+            node.AddValue("showTooltips", showTooltips);
+#if NODE_CLEANUP
+		    node.AddValue("removeUsedNodes", removeUsedNodes);
+#endif
+
+            root.AddNode(node);
+            string dir = Path.GetDirectoryName(SETTINGS_FILE);
+
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            root.Save(SETTINGS_FILE);
+        }
+
+        internal void LoadSettings()
+        {
+            if (!System.IO.File.Exists(SETTINGS_FILE))
+                return;
+
+            ConfigNode root = ConfigNode.Load(SETTINGS_FILE);
+            if (root == null)
+                return;
+            ConfigNode node = root.GetNode("SETTINGS");
+            if (node == null)
+                return; 
+
+            mainWindowPos = LoadRect(node, "mainWindowPos", mainWindowPos);
+            optionsWindowPos = LoadRect(node, "optionsWindowPos", optionsWindowPos);
+            keymapperWindowPos = LoadRect(node, "keymapperWindowPos", keymapperWindowPos);
+            clockWindowPos = LoadRect(node, "clockWindowPos", clockWindowPos);
+            conicsWindowPos = LoadRect(node, "conicsWindowPos", conicsWindowPos);
+            tripWindowPos = LoadRect(node, "tripWindowPos", tripWindowPos);
+
+            showManeuverPager =
+                LoadBool(node, "showManeuverPager", showManeuverPager);     
+            showConics =
+                LoadBool(node, "showConics", showConics);
+
+            showAngleInput =
+                LoadBool(node, "showAngleInput", showAngleInput);
+
+            showConicsAlways =
+                LoadBool(node, "showConicsAlways", showConicsAlways);
+
+            showClock =
+                LoadBool(node, "showClock", showClock);
+
+            showTrip =
+                LoadBool(node, "showTrip", showTrip);
+
+            showUTControls =
+                LoadBool(node, "showUTControls", showUTControls);
+
+            showEAngle =
+                LoadBool(node, "showEAngle", showEAngle);
+
+            showOrbitInfo =
+                LoadBool(node, "showOrbitInfo", showOrbitInfo);
+
+            intuitiveManeuverGizmos =
+                LoadBool(node, "intuitiveManeuverGizmos", intuitiveManeuverGizmos);
+
+            showTooltips =
+                LoadBool(node, "showTooltips", showTooltips);
+#if NODE_CLEANUP
+            removeUsedNodes =
+                LoadBool(node, "removeUsedNodes", removeUsedNodes);
+#endif
+        }
+
+        private void SaveRect(ConfigNode node, string name, Rect rect)
+        {
+            ConfigNode r = node.AddNode(name);
+
+            r.AddValue("x", rect.x);
+            r.AddValue("y", rect.y);
+            r.AddValue("w", rect.width);
+            r.AddValue("h", rect.height);
+        }
+
+        private Rect LoadRect(ConfigNode node, string name, Rect defaultRect)
+        {
+            ConfigNode r = node.GetNode(name);
+
+            if (r == null)
+                return defaultRect;
+
+            return new Rect(
+                LoadFloat(r, "x", defaultRect.x),
+                LoadFloat(r, "y", defaultRect.y),
+                LoadFloat(r, "w", defaultRect.width),
+                LoadFloat(r, "h", defaultRect.height)
+            );
+        }
+
+        private float LoadFloat(ConfigNode node, string name, float defaultValue)
+        {
+            if (!node.HasValue(name))
+                return defaultValue;
+
+            float value;
+            if (float.TryParse(node.GetValue(name), out value))
+                return value;
+
+            return defaultValue;
+        }
+
+        private bool LoadBool(ConfigNode node, string name, bool defaultValue)
+        {
+            if (!node.HasValue(name))
+                return defaultValue;
+
+            bool value;
+            if (bool.TryParse(node.GetValue(name), out value))
+                return value;
+
+            return defaultValue;
+        }
+
+
+    }
 }
