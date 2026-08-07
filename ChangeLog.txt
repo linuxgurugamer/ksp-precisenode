@@ -1,5 +1,9 @@
 ChangeLog
 
+1.2.13.1
+	Added clamping code to keep window on screen.
+	Updated version file to use github for new version info
+
 1.2.13
 	Thanks to github user @samnystrom for the following:
 		Adds an angle input to set the true anomaly, argument of latitude, or true longitude of the node (angle relative to Pe/AN/VE).

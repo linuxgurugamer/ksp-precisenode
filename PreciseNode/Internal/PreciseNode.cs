@@ -250,7 +250,15 @@ namespace RegexKSP
                 drawConicsGUI();
             }
         }
+        private void KeepWindowOnScreen(ref Rect windowRect)
+        {
+            // If the window is larger than the screen, pin it to the edge.
+            float maxX = Mathf.Max(0f, Screen.width - windowRect.width);
+            float maxY = Mathf.Max(0f, Screen.height - windowRect.height);
 
+            windowRect.x = Mathf.Clamp(windowRect.x, 0f, maxX);
+            windowRect.y = Mathf.Clamp(windowRect.y, 0f, maxY);
+        }
         /// <summary>
         /// Draw Node Editor and Options GUI
         /// </summary>
@@ -258,6 +266,7 @@ namespace RegexKSP
         {
             GUI.skin = null;
             var oldPos = options.mainWindowPos;
+            KeepWindowOnScreen(ref options.mainWindowPos);
             options.mainWindowPos = ClickThruBlocker.GUILayoutWindow(mainWindowId, options.mainWindowPos, (id) => drawMainWindow(),
                 Localizer.Format("#PN_PreciseNode"), GUILayout.ExpandHeight(true));
             if (oldPos != options.mainWindowPos)

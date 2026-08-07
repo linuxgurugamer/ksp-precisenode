@@ -1,6 +1,6 @@
 {
   "NAME": "Precise Node",
-  "URL": "http://ksp.spacetux.net/avc/PreciseNode",
+  "URL": "https://raw.githubusercontent.com/linuxgurugamer/ksp-precisenode/refs/heads/master/PreciseNode.version",
   "DOWNLOAD": "https://github.com/linuxgurugamer/ksp-precisenode/releases",
   "GITHUB": {
     "USERNAME": "linuxgurugamer",
@@ -10,7 +10,7 @@
     "MAJOR": 1,
     "MINOR": 2,
     "PATCH": 13,
-    "BUILD": 0
+    "BUILD": 1
   },
   "KSP_VERSION": {
     "MAJOR": 1,
@@ -20,7 +20,7 @@
   "KSP_VERSION_MIN": {
     "MAJOR": 1,
     "MINOR": 12,
-    "PATCH": 3
+    "PATCH": 1
   },
   "KSP_VERSION_MAX": {
     "MAJOR": 1,
